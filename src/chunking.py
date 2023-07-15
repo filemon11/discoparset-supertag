@@ -4,7 +4,7 @@ from typing import List, Tuple, Literal, cast
 
 
 
-def import_chunking_data(category : Literal["test"] | Literal["train"] | Literal["str"]) -> Tuple[List[List[str]], List[List[int]]]:
+def import_chunking_data(category : Literal["test"] | Literal["train"] | Literal["dev"]) -> Tuple[List[List[str]], List[List[int]]]:
     """
     Imports the conll2000 chunking dataset with the help of the
     huggingface dataset module. Based on Wall Street Journal corpus (WSJ)
