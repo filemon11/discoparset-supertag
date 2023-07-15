@@ -1140,6 +1140,7 @@ def main_eval(args, logger, device):
     
     model = torch.load("{}/model".format(args.model), map_location=device)
     model.to(device)
+
     model.eval()
     logger.info("Model loaded")
     
@@ -1151,48 +1152,55 @@ def main_eval(args, logger, device):
     #sentences = read_raw_corpus(args.corpus)
     #sentence_toks = [[T.Token(token, i, [None]) for i, token in enumerate(sentence)] for sentence in sentences]
 
-    test_corpus = corpus_reader.read_ctbk_corpus(args.corpus)
-    test_sentences, test_raw_sentences, test_sentences_copy, test_tensors = prepare_corpus(test_corpus, chars2i, words2i, device)
-
-    corpus_dirs = {"ccg" : args.ccg}
-
-    if args.pipeline:
-        ccg_model = depccg.load_model()
-        test_ccg_corpus = depccg.prepare_ccg(test_raw_sentences, ccg_model, tokens_input = True)
-
-    task2depth = {}
-    with open("{}/task2depth".format(args.model), "r") as f:
-        for l in f:
-            kv = l.split(":")
-            k = kv[0].strip()
-            l = int(kv[1].strip())
-            task2depth[k] = l
+    sentences = read_raw_corpus(args.corpus)
+    sentence_toks = [[T.Token(token, i, [None]) for i, token in enumerate(sentence)] for sentence in sentences]
     
-    tasks = list(task2depth.keys())
+    if args.ctbk is not None:
+        test_corpus = corpus_reader.read_ctbk_corpus(args.ctbk)
+        test_sentences, test_raw_sentences, test_sentences_copy, test_tensors = prepare_corpus(test_corpus, chars2i, words2i, device)
 
-    flat_task_list = [task for task in tasks if task != "parsing" and task != "tag"]
+        corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb}
 
-    aux_loader = multi_data_loader.DataLoader([tasks], corpus_dirs, "test", None, words2i, device)
-    aux_loader.load_vocab(args.model)
+        if args.pipeline:
+            ccg_model = depccg.load_model()
+            test_ccg_corpus = depccg.prepare_ccg(test_raw_sentences, ccg_model, tokens_input = True)
+
+        task2depth = {}
+        with open("{}/task2depth".format(args.model), "r") as f:
+            for l in f:
+                kv = l.split(":")
+                k = kv[0].strip()
+                l = int(kv[1].strip())
+                task2depth[k] = l
+
+        tasks = list(task2depth.keys())
+
+        flat_task_list = [task for task in tasks if task != "parsing" and task != "tag"]
+
+        aux_loader = multi_data_loader.DataLoader([tasks], corpus_dirs, "test", None, words2i, device)
+        aux_loader.load_vocab(args.model)
 
     with torch.no_grad():
+        sent_tensors = [sentence_to_tensors(sent, chars2i, words2i, device) for sent in sentences]
 
         start = time.time()
         if args.pipeline:
-            trees = predict_corpus(device, model, i2labels, i2tags, test_sentences_copy, test_tensors, batch=True, supertags = test_ccg_corpus)
+            trees = predict_corpus(device, model, i2labels, i2tags, sentence_toks, sent_tensors, batch=True, supertags = test_ccg_corpus)
         else:
-            trees = predict_corpus(device, model, i2labels, i2tags, test_sentences_copy, test_tensors, batch=True)
+            trees = predict_corpus(device, model, i2labels, i2tags, sentence_toks, sent_tensors, batch=True)
         end = time.time()
-        n_sentences = len(test_sentences)
-        n_tokens = sum([len(sent) for sent in test_sentences])
-        p_time = end - start
-        logger.info("parsing time: {:.2f} seconds for {} sentences ({} tokens)".format(p_time, n_sentences, n_tokens))
-        logger.info("parsing time: {:.2f} sentences per second, {:.2f} tokens per second".format(n_sentences / p_time, n_tokens / p_time))
+
+        if args.ctbk is not None:
+            n_sentences = len(test_sentences)
+            n_tokens = sum([len(sent) for sent in test_sentences])
+            p_time = end - start
+            logger.info("parsing time: {:.2f} seconds for {} sentences ({} tokens)".format(p_time, n_sentences, n_tokens))
+            logger.info("parsing time: {:.2f} sentences per second, {:.2f} tokens per second".format(n_sentences / p_time, n_tokens / p_time))
 
 
-        tag = eval_tagging(test_sentences, test_sentences_copy)
-        aux = [eval_generic(model, aux_loader.str_features[task], aux_loader.tensors[task], aux_loader.vocab[task][0], task, task2depth[task]) for task in flat_task_list]
-        
+            tag = eval_tagging(test_sentences, test_sentences_copy)
+            aux = [eval_generic(model, aux_loader.str_features[task], aux_loader.tensors[task], aux_loader.vocab[task][0], task, task2depth[task]) for task in flat_task_list]
+
 
         if args.output is None:
             for tree in trees:
@@ -1212,10 +1220,12 @@ def main_eval(args, logger, device):
                 print("disc-precision={}".format(dp))
                 print("disc-recall={}".format(dr))
                 print("disc-fscore={}".format(df))
-                print("tag-accuracy={:.2f}".format(tag))
 
-                for task, accuracy in zip(flat_task_list, aux):
-                    print("{}-accuracy={:.2f}".format(task, accuracy))
+                if args.ctbk is not None:
+                    print("tag-accuracy={:.2f}".format(tag))
+
+                    for task, accuracy in zip(flat_task_list, aux):
+                        print("{}-accuracy={:.2f}".format(task, accuracy))
 
 #    counts = defaultdict(int)
 #    for m in model.memory_sizes:
@@ -1314,6 +1324,7 @@ if __name__ == "__main__":
     eval_parser.add_argument("-depptb", type=str, default="../DepPTB/treebank.conllu", help="CCGrebank directory")
 
     eval_parser.add_argument("-pipeline", type=bool, default=False, help="Use depCCG supertagger as input for parser")
+    eval_parser.add_argument("-ctbk", type=str, default=None, help="Corpus in ctbk format if auxiliary eval is desired")
 
     args = parser.parse_args()
 
