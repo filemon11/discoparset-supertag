@@ -30,20 +30,42 @@ task_to_corpus : Dict[str, str] = {task : corpus for corpus, task_list in tasks.
 
 V = TypeVar("V")
 
-def shuffle_and_limit(data : Tuple[List[List[V]], ...], limit : Optional[int]) -> Tuple[List[List[V]], ...]:
-    """TODO"""
-    data_temp : List[Tuple[List[V]]] = cast(List[Tuple[List[V]]], list(zip(*data)))
+def shuffle_and_limit(data1 : List[V], *data : List[V], limit : Optional[int]) -> Tuple[List[V], ...]:
+    """
+    Shuffle one or more lists in parallel
+    and optionally limit the lists to
+    a certain index.
+
+    Parameters
+    ----------
+    data1 : List[V]
+        List to shuffle
+    data : Tuple[List[V], ...]
+        Additional lists to shuffle
+    split : Literal["test"] | Literal["train"] | Literal["dev"]
+        The split of the dataset to return.
+    limit : int | None
+        If not None: Number of sentences to sample.
+
+    Returns
+    -------
+    data_return : Tuple[List[V], ...]
+        Shuffled and optionally limited list(s).
+    """
+
+    data_temp = cast(List[Tuple[V, ...]], list(zip(data1, *data)))
 
     random.shuffle(data_temp)
 
     if limit is not None:
         data_temp = data_temp[:limit]
 
-    data_return : List[List[List[V]]] = [list(l) for l in list(zip(*data_temp))]
+    data_return : List[List[V]] = [list(l) for l in list(zip(*data_temp))]
     
     return tuple(data_return)
 
-def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) -> \
+def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] | Literal["dev"], 
+                            limit : Optional[int] = None) -> \
                                 Tuple[List[List[str]], Dict[str, List[List[str]]]]:
     """
     Imports the CCGrebank (CCG annotated Penn Treebank) corpus 
@@ -69,13 +91,11 @@ def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] |
     tokens : List[List[str]]
         The tokens.
     features : Dict[str, List[List[str]]]
-        Dictionary with the feautres and
+        Dictionary with the features and
         their values.
     """
 
     data : Dict[str, List[List[str]]] = {}
-    
-    supertag_data = shuffle_and_limit(ccgbank.import_complex_multi(range(*ccg_splits[split]), ccg_dir)[:5], limit)
 
     tokens          : List[List[str]]
     supertags       : List[List[str]]
@@ -83,7 +103,8 @@ def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] |
     leftactions     : List[List[str]]
     rightactions    : List[List[str]]
     
-    supertags, tokens, scopes, leftactions, rightactions = supertag_data
+    supertags, tokens, scopes, leftactions, rightactions = \
+                shuffle_and_limit(*ccgbank.import_complex_multi(range(*ccg_splits[split]), ccg_dir)[:5], limit = limit)
 
     data["supertag"]    = supertags
     data["scope"]       = scopes
@@ -92,38 +113,99 @@ def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] |
 
     return tokens, data
 
-def import_dep(dep_dir, split, limit = None) -> Tuple[List[List[str]], List[List[str]]]:
-    # Dep data
-    dep_data : List[Tuple[List[str], List[str]]] = list(zip(*depptb.corpus_parse(dep_dir, split)))
+def import_dep(dep_dir, split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) \
+                    -> Tuple[List[List[str]], List[List[str]]]:
+    """
+    Imports dependency information from the
+    depPTB (dependency annotated Penn Treebank) corpus
+    with the help of the the depptb module.
+    The standard split is used (section 2-22 train, 22-23 dev, 24 test).
 
-    random.shuffle(dep_data)
-    
-    if limit is not None:
-        dep_data = dep_data[:limit]
+    Parameters
+    ----------
+    dep_dir : str
+        path to depPTB .conll file (not split)
+    split : Literal["test"] | Literal["train"] | Literal["dev"]
+        The split of the dataset to return.
+    limit : int | None
+        If not None: Number of sentences to sample.
 
-    dep_sentences, dep = list(zip(*dep_data))
-
-    return list(dep_sentences), list(dep)
-
-def import_chunking(split, limit = None) -> Tuple[List[List[str]], List[List[str]]]:
-    chunking_data : Tuple[List[List[str]], List[List[int]]] = chunk.import_chunking_data(split)
-    chunking_data_converted : Tuple[List[List[str]], List[List[str]]] = chunking_data[0], [[str(value) for value in sentence] for sentence in chunking_data[1]]
-
-    chunking_data_temp : List[Tuple[List[str], List[str]]] = list(zip(*chunking_data_converted))
-    
-    random.shuffle(chunking_data_temp)
-
-    if limit is not None:
-        chunking_data_temp = chunking_data_temp[:limit]
-
-    chunking_sentences, chunking = list(zip(*chunking_data_temp))
-
-    return list(chunking_sentences), list(chunking)
-
-def import_data(tasks : List[List[str]], corpus_dirs : Dict[str, str], split : str, limit : Optional[int] = None) -> Dict[str, Tuple[List[List[str]], Dict[str, List[List[str]]]]]:
+    Returns
+    -------
+    tokens : List[List[str]]
+        The tokens.
+    features : List[List[str]]
+        Dependency features.
     """
 
-    "ccg" -> CCGrebank
+    dep_sentences   : List[List[str]]
+    dep             : List[List[str]]
+
+    dep_sentences, dep = shuffle_and_limit(*depptb.corpus_parse(dep_dir, split), limit=limit)
+
+    return dep_sentences, dep
+
+def import_chunking(split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) \
+                            -> Tuple[List[List[str]], List[List[str]]]:
+    """
+    Imports the conll2000 chunking dataset with the help of the
+    huggingface dataset module. Based on Wall Street Journal corpus (WSJ)
+    sections 15-18 (train, 211.727 tokens) and section 20 (test, 47.377 tokens).
+    Since the dataset has no development split, the last 400 sentences 
+    of the train split are provided for development. They are removed
+    for "train".
+
+    Parameters
+    ----------
+    split : Literal["test"] | Literal["train"] | Literal["dev"]
+        The split of the dataset to return.
+    limit : int | None
+        If not None: Number of sentences to sample.
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        The tokens.
+    features : List[List[str]]
+        Chunking features.
+    """
+
+    chunking_sentences   : List[List[str]]
+    chunking_temp        : List[List[int]]
+
+    chunking_sentences, chunking_temp = chunk.import_chunking_data(split)
+
+    # convert chunking features into strings to match the formatting standard
+    chunking : List[List[str]] = [[str(value) for value in sentence] for sentence in chunking_temp]
+
+    chunking_sentences, chunking = shuffle_and_limit(chunking_sentences, chunking, limit=limit)
+
+    return chunking_sentences, chunking
+
+def import_data(tasks : List[List[str]], corpus_dirs : Dict[str, str], split : Literal["test"] | Literal["train"] | Literal["dev"],
+                    limit : Optional[int] = None) -> Dict[str, Tuple[List[List[str]], Dict[str, List[List[str]]]]]:
+    """
+    Retrieves the datasets (tokens and annotation) for the
+    tasks specified in the tasks parameter. In cases where
+    several tasks are extracted from the same corpus, it is
+    only imported once. The split is dependent on the
+    the individual import functions.
+
+    Parameters
+    ----------
+    tasks : List[List[str]]
+        Hierarchical list of tasks.
+    corpus_dirs : Dict[str, str]
+        Mapping from corpus names to their paths.
+    splits : str
+        The split of the datasets to return.
+    
+    Returns
+    -------
+    data : Dict[str, Tuple[List[List[str]], Dict[str, List[List[str]]]]]
+        Mapping from corpus names to tuple (tokens, tasks), where:
+            tokens -- A list of sentences containing tokens.
+            tasks -- A mapping from tasks based on the corpus to the features.
     """
 
     data_dict : Dict[str, Tuple[List[List[str]], Dict[str, List[List[str]]]]] = {}
