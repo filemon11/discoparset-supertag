@@ -22,7 +22,7 @@ dgold=../multilingual_disco_data/data/${corpus}/dev.discbracket
 tgold=../multilingual_disco_data/data/${corpus}/test.discbracket
 
 threads=1
-iterations=1
+iterations=100
 lr=0.01
 dc=1e-7
 ep=4
