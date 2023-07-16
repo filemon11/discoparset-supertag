@@ -1,13 +1,41 @@
+"""
+Module for importing chunking data.
+Requires the huggingsface ``dataset`` package
+to download the corpus.
+
+The data was originally made available as part
+of the CoNLL-2000 shared chunking task.
+
+@inproceedings{tksbuchholz2000conll,
+   author     = "Tjong Kim Sang, Erik F. and Sabine Buchholz",
+   title      = "Introduction to the CoNLL-2000 Shared Task: Chunking",
+   editor     = "Claire Cardie and Walter Daelemans and Claire
+                 Nedellec and Tjong Kim Sang, Erik",
+   booktitle  = "Proceedings of CoNLL-2000 and LLL-2000",
+   publisher  = "Lisbon, Portugal",
+   pages      = "127--132",
+   year       = "2000"
+}
+
+
+Functions
+----------
+import_chunking_data
+    Imports the chunking dataset.
+
+"""
+
+
 from datasets import load_dataset, Dataset, DatasetDict
 
 from typing import List, Tuple, Literal, cast
+from parsing_typing import Corpus
 
 
-
-def import_chunking_data(category : Literal["test"] | Literal["train"] | Literal["dev"]) -> Tuple[List[List[str]], List[List[int]]]:
+def import_chunking_data(split : Literal["test"] | Literal["train"] | Literal["dev"]) -> Tuple[Corpus, List[List[int]]]:
     """
     Imports the conll2000 chunking dataset with the help of the
-    huggingface dataset module. Based on Wall Street Journal corpus (WSJ)
+    huggingface ``datasets`` module. Based on Wall Street Journal corpus (WSJ)
     sections 15-18 (train, 211.727 tokens) and section 20 (test, 47.377 tokens).
     Since the dataset has no development split, the last 400 sentences 
     of the train split are provided for development. They are removed
@@ -28,14 +56,14 @@ def import_chunking_data(category : Literal["test"] | Literal["train"] | Literal
 
     dataset : DatasetDict = cast(DatasetDict, load_dataset("conll2000"))
 
-    tokens : List[List[str]]
-    labels : List[List[int]] 
+    tokens : Corpus
+    labels : List[List[int]]
     
-    if category == "dev":
+    if split == "dev":
         tokens = dataset["train"]["tokens"][-400:]
         labels = dataset["train"]["chunk_tags"][-400:]
 
-    elif category == "train":
+    elif split == "train":
         tokens = dataset["train"]["tokens"][:-400]
         labels = dataset["train"]["chunk_tags"][:-400]
 
