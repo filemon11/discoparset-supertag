@@ -4,22 +4,34 @@ supertag annotated CCGrebank corpus.
 
 Classes
 ----------
+Tree
+    Tree class for representing a CCG derivation.
+Leaf
+    Leaf class used together with ``Tree``.
 
 Functions
 ----------
 construct_tree
+    Constructs a CCG derivation tree out of a string bracketed tree.
 import_auto
-component_generator
+    Imports tokens, supertags and scopes from file. 
 simplify
-import_parg
-import_complex
-import_complex_multi
+    Simplify co-indices in supertags or remove them.
 remove_UB
+    Remove mediation information from supertags.
+import_parg
+    Import leftactions and rightactions from file.
+import_complex
+    Import tokens, supertags, scopes, leftaction and rightaction from a file.
+import_complex_multi
+    Import tokens, supertags, scopes, leftaction and rightactiom from a sequence of files.
 get_long_distance_sketch
+    obsolete
 
 Constants
 ----------
 SPLITS
+    Mapping from split names to file ranges for CCGrebank import.
 
 """
 
@@ -33,11 +45,13 @@ from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
 from types import MappingProxyType
 
-# standard splits for ccgrebank import
 SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train" : (200,2200), 
                                                                     "dev" : (2201,2300), 
                                                                     "test" : (2301,2400)})
-"""TODO"""
+"""
+Mapping from split names "train, "dev", "test" to the corresponding ranges
+of files for the CCGrebank import.
+"""
 
 class Tree:
     """
@@ -525,6 +539,41 @@ def simplify(element : str, remove_indices : bool = True) -> str:
     return "".join(simple_element)
 
 
+def remove_UB(supertag : str) -> str:
+    '''
+    Remove mediation indicator for locally mediated (":U")
+    and for long-range ("B") dependencies from
+    supertag to retrieve clean supertags.
+
+    Parameters
+    ----------
+    supertag : str
+        Supertag to convert.
+
+    Returns
+    -------
+    str
+        Supertag with removed mediation information
+    '''
+    in_UB : bool = False
+    final_supertag : str = ""
+
+    for c in supertag:
+
+        if in_UB:
+            in_UB = False
+            continue
+        
+        elif c == ":":
+            in_UB = True
+            continue
+
+        else:
+            final_supertag += c
+
+    return final_supertag 
+
+
 def import_parg(filename : str, limit : int = 5) -> Tuple[List[List[str]], List[List[str]]]:
     '''
     Imports predicate-argument structure 
@@ -618,7 +667,7 @@ def import_complex(num : int, data_dir : str) -> Tuple[Corpus, Corpus, Corpus, C
     Parameters
     ----------
     num : int
-        Numbers of the file in the corpus data
+        Number of the file in the corpus data
         to extract. The file contains a variable
         number of sentences.
     data_dir : str
@@ -709,8 +758,8 @@ def import_complex_multi(nums : Sequence[int], data_dir : str) -> Tuple[Corpus, 
     five different features:
         supertags : lexical category assignments
         scopes : range boundaries of the supertag's predecessors in the derivation 
-        leftaction : TODO,
-        rightaction : TODO
+        leftaction : relative position of a supertag's left arguments
+        rightaction : relative position of a supertag's right arguments
         dependency : obsolete
 
     Parameters
@@ -731,9 +780,9 @@ def import_complex_multi(nums : Sequence[int], data_dir : str) -> Tuple[Corpus, 
     scopes : List[List[str]]
         range boundaries of the supertag's predecessors in the derivation 
     action_left : List[List[str]]
-        TODO
+        Relative position of a supertag's left arguments.
     action_right : List[List[str]]
-        TODO
+        Relative position of a supertag's right arguments.
     dependency : List[List[str]]
         obsolete
     '''
@@ -761,45 +810,6 @@ def import_complex_multi(nums : Sequence[int], data_dir : str) -> Tuple[Corpus, 
     assert(len(supertags) == len(tokens) == len(scopes) == len(action_left) == len(action_right) == len(dependency))
 
     return tokens, supertags, scopes, action_left, action_right, dependency
-
-
-# information:
-# head position relative to argument (e.g. -1, +3, ...))
-# argument number
-
-def remove_UB(supertag : str) -> str:
-    '''
-    Remove mediation indicator for locally mediated (":U")
-    and for long-range ("B") dependencies from
-    supertag to retrieve clean supertags.
-
-    Parameters
-    ----------
-    supertag : str
-        Supertag to convert.
-
-    Returns
-    -------
-    str
-        Supertag with removed mediation information
-    '''
-    in_UB : bool = False
-    final_supertag : str = ""
-
-    for c in supertag:
-
-        if in_UB:
-            in_UB = False
-            continue
-        
-        elif c == ":":
-            in_UB = True
-            continue
-
-        else:
-            final_supertag += c
-
-    return final_supertag 
 
 
 def get_long_distance_sketch(supertag : str) -> str:
