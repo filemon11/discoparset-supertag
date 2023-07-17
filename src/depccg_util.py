@@ -1,82 +1,193 @@
-from re import I
+"""
+This module provides functions to import
+supertag annotations and supertag distributions
+from the depCCG model:
+
+@inproceedings{yoshikawa:2017acl,
+      author={Yoshikawa, Masashi and Noji, Hiroshi and Matsumoto, Yuji},
+      title={A* CCG Parsing with a Supertag and Dependency Factored Model},
+      booktitle={Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+      publisher={Association for Computational Linguistics},
+      year={2017},
+      pages={277--287},
+      location={Vancouver, Canada},
+      doi={10.18653/v1/P17-1026},
+      url={http://aclweb.org/anthology/P17-1026}
+    }
+
+
+Functions
+----------
+load_model
+    Load the standard depCCG model.
+supertag
+    Supertags a corpus with the 1-best supertag.
+supertag_distribution
+    Computes a supertag assignment probability for a corpus.
+all_supertags
+    Gives the list of possible lexical category assignments a depCCG can predict.
+
+Constants
+----------
+CCG_CATS
+    Supertag prediction vocabulary size depCCG works with.
+
+"""
+
 from depccg.instance_models import load_model as depccg_load_model
 from depccg.types import ScoringResult
 from depccg.chainer import lstm_parser_bi_fast
-#from depccg.allennlp import supertagger
 
-from multiprocessing import Pool
-
-from collections import defaultdict
-
-from typing import DefaultDict, List, Tuple, Optional, Dict, Set, Any, Hashable
-
-import copy
+from typing import List, Optional
+from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
 import torch
 
-import tree as T
+Device = torch.device | int
 
-def load_model(device : int = -1):
-    return depccg_load_model(None)[0]
+CCG_CATS = 425
+"Total number of CCG lexical category assignments depCCG uses."
 
-def supertag(corpus : List[List[str]], device : int = -1, model = None) -> List[List[str]]:
+def load_model(device : int = -1) -> lstm_parser_bi_fast.FastBiaffineLSTMParser:
+    """
+    Loads depCCG basic english model for efficient
+    supertagging. Due to unresolved bugs
+    (version incompatibility?), the model
+    runs on the CPU at default. Change to
+    0 (or larger depending on your number of
+    GPUs) when calling the method if it works 
+    for you.
 
-    if not model:
+    Parameters
+    ----------
+    device : int, default = -1
+        Device to run on. -1 is CPU.
+        Larger integers denote GPUs of your
+        system. Does not accept torch.device
+        objects.
+    
+    Returns
+    -------
+    lstm_parser_bi_fast.FastBiaffineLSTMParser
+    """
+    return depccg_load_model(None, device = device)[0]
+
+def supertag(corpus : AnyCorpus, model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, device : int = -1) \
+                                                                                                                -> Corpus:
+    """
+    Supertags a corpus using the
+    1-best predictin of a depCCG
+    model.
+
+    Parameters
+    ----------
+
+    corpus : List[List[str]]
+        A list of sentences where 
+        a sentences is a list of token strings.
+    model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser], default = None
+        Pre-loaded depCCG model. If None,
+        the standard model is loaded.
+    device : int, default = -1
+        Device to initialize the model on if
+        no model is provided.
+
+    Returns
+    -------
+    List[List[str]]
+        The supertagged corpus with
+        each supertag represented as
+        one string.
+    """
+
+    if model is None:
         model = load_model(device)
 
     score_result    : List[ScoringResult]
-    categories_     : List[str]
+    categories      : List[str]
     
-    score_result, categories_ = model.predict_doc(corpus)
+    score_result, categories = model.predict_doc(corpus)
 
-    supertags : List[List[str]] = [[categories_[row.argmax()] for row in sentence.tag_scores] for sentence in score_result]
+    supertags : Corpus = [[categories[row.argmax()] for row in sentence.tag_scores] for sentence in score_result]
     
     return supertags
 
-def supertag_onehot(corpus : List[List[str]], device : int = -1, model = None):
+def supertag_distribution(corpus : AnyCorpus, tensor_device : Device = torch.device("cpu"),
+                            model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, model_device : int = -1) \
+                                                                                                        -> List[torch.Tensor]:
+    """
+    Computes supertag probability
+    distributions for a corpus.
 
-    if not model:
-        model = load_model(device)
+    Parameters
+    ----------
+    corpus : List[List[str]]
+        A list of sentences where 
+        a sentences is a list of token strings.
+    tensor_device : int | torch.device, default = torch.device("cpu")
+        Device to locate output tensors on.
+    model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser], default = None
+        Pre-loaded depCCG model. If None,
+        it is loaded for this task separately.
+    model_device : int, default = -1
+        Device to initialize the model on if
+        no model is provided.
 
-    score_result    : List[ScoringResult]
-    categories_     : List[str]
+    Returns
+    -------
+    List[torch.Tensor]
+        One tensor per input sentence with
+        dimension ``(S, CCG_CATS)``, where S
+        denotes the sequence length and CCG_CATS
+        the number of possible supertags depCCG
+        predicts.
+
+    See Also
+    -------
+    depccg_util.CCG_CATS
+    """
     
-    score_result, categories_ = model.predict_doc(corpus)
+    # load model if not provided
+    if model is None:
+        model = load_model(model_device)
 
-    results = [torch.zeros(len(sen), len(categories_), requires_grad = False) for sen in corpus]
-
-    for s_i, sentence in enumerate(score_result):
-        for w_i, row in enumerate(sentence.tag_scores):
-            
-            results[s_i][w_i] = torch.exp(torch.tensor(row, requires_grad = False))
+    score_result : List[ScoringResult]
     
-    return results
+    score_result, _ = model.predict_doc(corpus)
 
-def supertag_features(corpus : List[List[str]], device : int = -1, model = None) -> List[List[str]]:
+    # depCCG outputs log probabilities.
+    probabilities : List[torch.Tensor] = [torch.exp(torch.tensor(sentence.tag_scores, requires_grad = False, device = tensor_device)) for sentence in score_result]
 
-    if not model:
-        model = load_model(device)
+    return probabilities
 
-    r,_ = model.predict_doc(corpus, gpu = -1)
+def all_supertags(model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, device : int = -1) -> List[str]:
+    """
+    Retrieves the list of all possible
+    lexical category assignments depCCG
+    can predict from given model. If no
+    model is provided, it loads the standard
+    model with ``load_model``.
 
-    return r
+    Parameters
+    ----------
 
-def all_supertags(device : int = -1, model = None) -> List[str]:
+    model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser], default = None
+        Pre-loaded depCCG model. If None,
+        the standard model is loaded.
+    device : int, default = -1
+        Device to initialize the model on if
+        no model is provided.
 
-    if not model:
+    Returns
+    -------
+    List[str]
+        The list of all possible
+        lexical category assignments.
+
+    """
+    if model is None:
         model, _ = load_model(device)
 
-    categories_ : List[str]
+    categories : List[str] = model.predict_doc([[]])[1]
     
-    _, categories_ = model.predict_doc([[]])
-    
-    return categories_
-
-
-def prepare_ccg(corpus, model = None, tokens_input = False):
-    if not tokens_input:
-        raw_corpus = [[tok.token for tok in T.get_yield(corpus[i])] for i in range(len(corpus))]
-    else:
-        raw_corpus = corpus
-    scores = supertag_onehot(raw_corpus, model)
-    return scores
+    return categories

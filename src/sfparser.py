@@ -22,17 +22,14 @@ from state import State
 import corpus_reader
 import tree as T
 
-from transformer import TransformerEncoderLayer
-
-from token_encoder import TokenEncoder, StackedTokenEncoder, StackedSupertagTokenEncoder
+from token_encoder import StackedSupertagTokenEncoder
 
 import multi_data_loader
 
 import depccg_util as depccg
 
-from utils import batch_stochastic_replacement, save_dict, load_dict
+from utils import batch_stochastic_replacement, save_dict, load_dict, sentence_to_tensors
 
-CCG_CATS = 425
 
 def mem(device):
     #return True
@@ -109,9 +106,9 @@ class Transducer(nn.Module):
                         nn.LogSoftmax(dim=1))
 
         self.tagger = nn.Sequential(
-                                        Dropout(args.X),
-                                        nn.Linear(args.W, num_tag_labels, bias=False),
-                                        nn.LogSoftmax(dim=1))
+                        Dropout(args.X),
+                        nn.Linear(args.W, num_tag_labels, bias=False),
+                        nn.LogSoftmax(dim=1))
 
         # AUX tagging
         self.aux_taggers = nn.ModuleDict({task : nn.Sequential(
@@ -184,21 +181,6 @@ def get_vocabulary(corpus, *other_token_lists):
                 chars[char] += 1
 
     return words, chars, label_set, tag_set
-
-
-def sentence_to_tensors(sentence, char2i, words2i, device):
-#    tensors = []
-#    start, stop = [char2i["<START>"]], [char2i["<STOP>"]]
-#    chars = []
-#    for tok in sentence:
-#        if tok in {"-LRB-", "-RRB-", "#RRB#", "#LRB#"}:
-#            chars.append([start[0], char2i[tok], stop[0]])
-#        else:
-#            chars.append(start + [char2i[c] if c in char2i else char2i["<UNK>"] for c in tok] + stop)
-    words = [words2i[w] if w in words2i else words2i["<UNK>"] for w in sentence]
-    return (sentence, torch.tensor(words, dtype=torch.long, device=device))
-    #return ([torch.tensor(cs, dtype=torch.long, device=device) for cs in chars],
-    #         torch.tensor(words, dtype=torch.long, device=device))
 
 
 def set2tensor(device, iset, add=None, embeddings=None):
@@ -501,7 +483,7 @@ def train_sentence_batch(device, model, optimizer, sentence_tensors, features, b
                 loss += F.nll_loss(so, struct_output[i], reduction="sum")
         # --
         loss.backward()
-        return loss.float()
+        return loss.float().detach()
     else:
         input_tensors = sentence_tensors
 
@@ -544,7 +526,7 @@ def train_sentence_batch(device, model, optimizer, sentence_tensors, features, b
 
         loss /= len(features)
         loss.backward()
-        return loss.float()
+        return loss.float().detach()
 
 
 
@@ -557,7 +539,7 @@ def train_generic_tagging(device, model, optimizer, sentence_tensors, tags, dept
         output = model.aux_taggers[task](embeddings)
         loss = torch.sum(model.tagger_loss(output, tags))
         loss.backward()
-        return loss.float()
+        return loss.float().detach()
     else:
         input_tensors = sentence_tensors
         embeddings, _ = model(input_tensors, depth = depth, batch=True)
@@ -568,7 +550,7 @@ def train_generic_tagging(device, model, optimizer, sentence_tensors, tags, dept
         loss = torch.sum(model.tagger_loss(output, batch_tags))
         loss /= len(tags)
         loss.backward()
-        return loss.float()
+        return loss.float().detach()
     
 def train_sentence_tagging(device, model, optimizer, sentence_tensors, tags, depth, batch=False, supertags = None):
     # Returns loss node for tagging
@@ -579,7 +561,7 @@ def train_sentence_tagging(device, model, optimizer, sentence_tensors, tags, dep
         output = model.tagger(embeddings)
         loss = torch.sum(model.tagger_loss(output, tags))
         loss.backward()
-        return loss.float()
+        return loss.float().detach()
     else:
         input_tensors = sentence_tensors
         embeddings, _ = model(input_tensors, depth = depth, batch=True, supertags = supertags)
@@ -590,7 +572,7 @@ def train_sentence_tagging(device, model, optimizer, sentence_tensors, tags, dep
         loss = torch.sum(model.tagger_loss(output, batch_tags))
         loss /= len(tags)
         loss.backward()
-        return loss.float()
+        return loss.float().detach()
 
 def extract_features(device, labels2i, sentence):
 
@@ -751,12 +733,12 @@ def predict_corpus(device, model, i2labels, i2tags, sentences_copy, tensors, bat
             return trees
 
 
-def prepare_corpus(corpus, char2i, words2i, device):
+def prepare_corpus(corpus, words2i, device):
     sentences = [T.get_yield(corpus[i]) for i in range(len(corpus))]
     raw_sentences = [[tok.token for tok in sentence] for sentence in sentences]
     sentences_copy = [[T.Token(tok.token, i, [feat for feat in tok.features])
                         for i, tok in enumerate(sent)] for sent in sentences]
-    tensors = [sentence_to_tensors(sent, char2i, words2i, device) for sent in raw_sentences]
+    tensors = [sentence_to_tensors(sent, words2i, device) for sent in raw_sentences]
     return sentences, raw_sentences, sentences_copy, tensors
 
 
@@ -814,11 +796,16 @@ def main_train(args, logger, device):
             f.write("{}:{}\n".format(k, v))
 
     tagging_tasks_flat = [task for level in tasks for task in level if task != "parsing" and task != "tag"]
-
-    aux_train_loader    = multi_data_loader.DataLoader(tasks, corpus_dirs, "train", args.S, device = device)
-    aux_dev_loader      = multi_data_loader.DataLoader(tasks, corpus_dirs, "dev", args.S, vocab = aux_train_loader.vocab)
+    
+    # Initialisation of DataLoaders to manage train and dev auxiliary corpus data.
+    # The datasets necessary for the tasks specified in tagging_tasks_flat are automatically loaded.
+    aux_train_loader    = multi_data_loader.DataLoader(tagging_tasks_flat, corpus_dirs, "train", "train", args.S, device = device)
+    aux_dev_loader      = multi_data_loader.DataLoader(tagging_tasks_flat, corpus_dirs, "dev", "eval", args.S, vocab = aux_train_loader.vocab)
 
     # Vocab
+    # The tokens retrieved for auxiliary tasks are also treated as part
+    # of the input alphabet. Currently, this would not be necessary since
+    # the auxiliary train corpora do not transcend the PTB/WSJ sections 2-22.
     logger.info("Vocabulary extraction...")
     words, vocabulary, label_set, tag_set = get_vocabulary(train_corpus, *aux_train_loader.token_lists)
 
@@ -856,17 +843,8 @@ def main_train(args, logger, device):
     random.shuffle(train_corpus)
 
     if args.S is not None:
-        train_corpus = train_corpus[:args.S]
-        dev_corpus = dev_corpus[:args.S]
-    
-    # depCCG Pipeline data
-    if args.sup > 0:
-        ccg_model = depccg.load_model()
-        train_ccg_corpus = depccg.prepare_ccg(train_corpus, ccg_model)
-        dev_ccg_corpus = depccg.prepare_ccg(dev_corpus, ccg_model)
-
-    print("Training sentences: {}".format(len(train_corpus)))
-    print("Dev set sentences: {}".format(len(dev_corpus)))
+        train_corpus    = train_corpus[:args.S]
+        dev_corpus      = dev_corpus[:args.S]
 
     #print(aux_train_data_tensors.keys(), aux_train_data_tensors["supertag"])
 
@@ -874,8 +852,11 @@ def main_train(args, logger, device):
 
     words2tensors = enc.Words2Tensors(device, chars2i, words2i, pchar=None)
 
+    # Provide number of supertags in depCCG to the Transducer in the case
+    # of a pipeline-approach. The number of supertags specifies the output
+    # dimension of depCCG.
     if args.sup > 0:
-        model = Transducer(args, len(tasks), len(i2chars), len(i2words), len(labels2i), len(tags2i), aux_train_loader.num_labels, words2tensors, supertag_num = CCG_CATS)
+        model = Transducer(args, len(tasks), len(i2chars), len(i2words), len(labels2i), len(tags2i), aux_train_loader.num_labels, words2tensors, supertag_num = depccg.CCG_CATS)
     else:
         model = Transducer(args, len(tasks), len(i2chars), len(i2words), len(labels2i), len(tags2i), aux_train_loader.num_labels, words2tensors)
     
@@ -892,24 +873,23 @@ def main_train(args, logger, device):
 
 
     logger.info("Constructing training examples...")
-    corpus_tmp = prepare_corpus(train_corpus, chars2i, words2i, device)
+    corpus_tmp = prepare_corpus(train_corpus, words2i, device)
     train_sentences, train_raw_sentences, train_sentences_copy, train_tensors = corpus_tmp
     #TODO all_gold_train_constituents = []
 
+    # initialise auxiliary task token tensors and tensors_copy
     aux_train_loader.init_tensors(words2i, device)
     aux_dev_loader.init_tensors(words2i, device)
 
-    dev_sentences, dev_raw_sentences, dev_sentences_copy, dev_tensors = prepare_corpus(dev_corpus, chars2i, words2i, device)
+    dev_sentences, dev_raw_sentences, dev_sentences_copy, dev_tensors = prepare_corpus(dev_corpus, words2i, device)
     gold_dev_constituents = [T.get_constituents(tree, filter_root=True) for tree in dev_corpus]
 
     sample_train_corpus = train_corpus[:len(dev_sentences)//4]
 
-    if args.sup > 0:
-        sample_train_ccg_corpus = train_ccg_corpus[:len(dev_sentences)//4]
-
-    corpus_tmp = prepare_corpus(sample_train_corpus, chars2i, words2i, device)
+    corpus_tmp = prepare_corpus(sample_train_corpus, words2i, device)
     sample_train_sentences, sample_train_raw_sentences, sample_train_sentences_copy, sample_train_tensors = corpus_tmp
 
+    # create auxiliary task train sample for evaluation
     aux_train_sample_loader = aux_train_loader.get_sample(len(dev_sentences)//4, device)
     aux_train_sample_loader.init_tensors(words2i, device)
 
@@ -935,6 +915,23 @@ def main_train(args, logger, device):
     num_tag_tokens          = sum([len(sentence) for sentence in train_sentences])
     num_parsing_sentences   = len(train_sentences)
 
+    # depCCG Pipeline data
+    # Supertag the train and dev corpus pre-training to use supertags
+    # as input features.
+    if args.sup > 0:
+        ccg_model = depccg.load_model()
+
+        train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model)
+        dev_ccg_corpus      = depccg.supertag_distribution(dev_raw_sentences, device, ccg_model)
+
+    if args.sup > 0:
+        sample_train_ccg_corpus = train_ccg_corpus[:len(dev_sentences)//4]
+        
+    print("Training sentences: {}".format(len(train_corpus)))
+    print("Dev set sentences: {}".format(len(dev_corpus)))
+
+    # create a list of (task, sentence_num) pairs. In each iteration, all sentences 
+    # from all tasks are trained once in random order.
     idxs = [(task, sentence_num) for task in tagging_tasks_flat for sentence_num in range(aux_train_loader.num_sentences[task])]
     idxs += [(task, sentence_num) for task in ("tag", "parsing") for sentence_num in range(len(train_sentences))]
 
@@ -976,8 +973,8 @@ def main_train(args, logger, device):
                     logger.info("Epoch {} Training sent {} / {}".format(epoch, i, len(idxs)))
 
                 if task == "parsing":
-                    #print("b", mem(device))
-                    if args.sup > 0:
+                    
+                    if args.sup > 0:                                                        # provide supertags as input features
                         epoch_loss += train_sentence_batch(device, model, optimizer,
                                                        train_tensors_copy[ex],
                                                        features[ex],
@@ -1004,7 +1001,7 @@ def main_train(args, logger, device):
                     optimizer.step()
                 
                 else:
-                    losses[task] += train_generic_tagging(device, model, optimizer, aux_train_loader.tensors_copy[task][ex], aux_train_loader.features[task][ex], task2depth[task], task)
+                    losses[task] += train_generic_tagging(device, model, optimizer, aux_train_loader.tensors_copy[task][ex], aux_train_loader.tensor_features[task][ex], task2depth[task], task)
                     if args.G is not None:
                         grad_norms[task] += torch.nn.utils.clip_grad_norm_(model.parameters(), args.G)
                     optimizer.step()
@@ -1069,7 +1066,7 @@ def main_train(args, logger, device):
         p, r, f, up, ur, uf = Fscore_corpus(gold_dev_constituents, dcorpus_pred_constituents)
         dtag = eval_tagging(dev_sentences, dev_sentences_copy)
 
-        daux = [eval_generic(model, aux_dev_loader.str_features[task], aux_dev_loader.tensors[task], aux_dev_loader.vocab[task][0], task, task2depth[task]) for task in tagging_tasks_flat]
+        daux = [eval_generic(model, aux_dev_loader.features[task], aux_dev_loader.tensors[task], aux_dev_loader.vocab[task][0], task, task2depth[task]) for task in tagging_tasks_flat]
 
         outfile = "{}/tmp_dev.discbracket".format(args.model)
         with open(outfile, "w") as fstream:
@@ -1097,7 +1094,7 @@ def main_train(args, logger, device):
         tp, tr, tf, tup, tur, tuf = Fscore_corpus(sample_gold_train_constituents, tcorpus_pred_constituents)
         ttag = eval_tagging(sample_train_sentences, sample_train_sentences_copy)
         
-        taux = [eval_generic(model, aux_train_sample_loader.str_features[task], aux_train_sample_loader.tensors[task], aux_train_sample_loader.vocab[task][0], task, task2depth[task]) for task in tagging_tasks_flat]
+        taux = [eval_generic(model, aux_train_sample_loader.features[task], aux_train_sample_loader.tensors[task], aux_train_sample_loader.vocab[task][0], task, task2depth[task]) for task in tagging_tasks_flat]
         
 
         summary = "Ep{} lr={:.5f} Tr l={:.5f} tl={:.5f} " + " ".join([task + "loss={:.5f}" for task in losses.keys()]) + " pr{}/{} f={:.2f} u={}/{}/{:.1f} t={:.2f} " + " ".join([task + "={:.2f}" for task in tagging_tasks_flat]) + " Dev pr{}/{} f={:.2f} ({:.2f}) u={}/{}/{:.1f} t={:.2f} " + " ".join([task + "={:.2f}" for task in tagging_tasks_flat])
@@ -1149,21 +1146,19 @@ def main_eval(args, logger, device):
     i2chars, chars2i = load_dict("{}/i2chars".format(args.model))
     i2words, words2i = load_dict("{}/i2words".format(args.model))
 
-    #sentences = read_raw_corpus(args.corpus)
-    #sentence_toks = [[T.Token(token, i, [None]) for i, token in enumerate(sentence)] for sentence in sentences]
-
     sentences = read_raw_corpus(args.corpus)
     sentence_toks = [[T.Token(token, i, [None]) for i, token in enumerate(sentence)] for sentence in sentences]
     
+    # args.ctbk is specified if an evaluation of tagging 
+    # and multi-task tagging is requested
     if args.ctbk is not None:
         test_corpus = corpus_reader.read_ctbk_corpus(args.ctbk)
-        test_sentences, test_raw_sentences, test_sentences_copy, test_tensors = prepare_corpus(test_corpus, chars2i, words2i, device)
+        test_sentences, test_raw_sentences, test_sentences_copy, _ = prepare_corpus(test_corpus, words2i, device)
 
         corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb}
 
         if args.pipeline:
-            ccg_model = depccg.load_model()
-            test_ccg_corpus = depccg.prepare_ccg(test_raw_sentences, ccg_model, tokens_input = True)
+            test_ccg_corpus = depccg.supertag_distribution(test_raw_sentences, tensor_device=device)
 
         task2depth = {}
         with open("{}/task2depth".format(args.model), "r") as f:
@@ -1177,11 +1172,11 @@ def main_eval(args, logger, device):
 
         flat_task_list = [task for task in tasks if task != "parsing" and task != "tag"]
 
-        aux_loader = multi_data_loader.DataLoader([tasks], corpus_dirs, "test", None, words2i, device)
+        aux_loader = multi_data_loader.DataLoader(flat_task_list, corpus_dirs, args.split, "eval", None, words2i, device)
         aux_loader.load_vocab(args.model)
 
     with torch.no_grad():
-        sent_tensors = [sentence_to_tensors(sent, chars2i, words2i, device) for sent in sentences]
+        sent_tensors = [sentence_to_tensors(sent, words2i, device) for sent in sentences]
 
         start = time.time()
         if args.pipeline:
@@ -1190,17 +1185,20 @@ def main_eval(args, logger, device):
             trees = predict_corpus(device, model, i2labels, i2tags, sentence_toks, sent_tensors, batch=True)
         end = time.time()
 
+        n_sentences = len(test_sentences)
+        n_tokens = sum([len(sent) for sent in test_sentences])
+        p_time = end - start
+        logger.info("parsing time: {:.2f} seconds for {} sentences ({} tokens)".format(p_time, n_sentences, n_tokens))
+        logger.info("parsing time: {:.2f} sentences per second, {:.2f} tokens per second".format(n_sentences / p_time, n_tokens / p_time))
+
         if args.ctbk is not None:
-            n_sentences = len(test_sentences)
-            n_tokens = sum([len(sent) for sent in test_sentences])
-            p_time = end - start
-            logger.info("parsing time: {:.2f} seconds for {} sentences ({} tokens)".format(p_time, n_sentences, n_tokens))
-            logger.info("parsing time: {:.2f} sentences per second, {:.2f} tokens per second".format(n_sentences / p_time, n_tokens / p_time))
-
-
             tag = eval_tagging(test_sentences, test_sentences_copy)
-            aux = [eval_generic(model, aux_loader.str_features[task], aux_loader.tensors[task], aux_loader.vocab[task][0], task, task2depth[task]) for task in flat_task_list]
 
+            for task in flat_task_list:
+                for t, f in zip(aux_loader.tensors[task], aux_loader.features[task]):
+                    if len(t) == 0 or len(f) == 0:
+                        print(task, t, f)
+            aux = [eval_generic(model, aux_loader.features[task], aux_loader.tensors[task], aux_loader.vocab[task][0], task, task2depth[task]) for task in flat_task_list]
 
         if args.output is None:
             for tree in trees:
@@ -1221,6 +1219,7 @@ def main_eval(args, logger, device):
                 print("disc-recall={}".format(dr))
                 print("disc-fscore={}".format(df))
 
+                # print tagging and auxiliary-task tagging accuracies
                 if args.ctbk is not None:
                     print("tag-accuracy={:.2f}".format(tag))
 
@@ -1323,8 +1322,9 @@ if __name__ == "__main__":
     eval_parser.add_argument("-ccg", type=str, default="../CCGrebank/data", help="CCGrebank directory")
     eval_parser.add_argument("-depptb", type=str, default="../DepPTB/treebank.conllu", help="CCGrebank directory")
 
-    eval_parser.add_argument("-pipeline", type=bool, default=False, help="Use depCCG supertagger as input for parser")
-    eval_parser.add_argument("-ctbk", type=str, default=None, help="Corpus in ctbk format if auxiliary eval is desired")
+    eval_parser.add_argument("-pipeline", type=bool, default=False, help="Use depCCG supertagger as input feature for parser. Must be set to the same value as in model training.")
+    eval_parser.add_argument("-ctbk", type=str, default=None, help="Corpus in ctbk format if tag and auxiliary tag eval is desired")
+    eval_parser.add_argument("-split", type=str, default="test", help="Split for auxiliary eval data loading")
 
     args = parser.parse_args()
 

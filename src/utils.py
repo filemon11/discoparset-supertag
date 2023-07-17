@@ -1,3 +1,18 @@
+"""
+This module provides functions for corpus data management.
+
+Functions
+----------
+batch_stochastic_replacement
+    Reinitializes and modifies copy_tensors in-place.
+save_dict
+    Saves dictionary in a file.
+load_dict
+    Loads dictionary from a file
+sentence_to_tensors
+    Converts a sentence (list of tokens) into a tensor.
+"""
+
 import torch
 
 def batch_stochastic_replacement(device, tensors, copy_tensors, words2i, pword=0.3):
@@ -56,3 +71,17 @@ def load_dict(filename):
         for k in f:
             i2l.append(k.strip())
     return i2l, {k: i for i, k in enumerate(i2l)}
+
+def sentence_to_tensors(sentence, words2i, device):
+#    tensors = []
+#    start, stop = [char2i["<START>"]], [char2i["<STOP>"]]
+#    chars = []
+#    for tok in sentence:
+#        if tok in {"-LRB-", "-RRB-", "#RRB#", "#LRB#"}:
+#            chars.append([start[0], char2i[tok], stop[0]])
+#        else:
+#            chars.append(start + [char2i[c] if c in char2i else char2i["<UNK>"] for c in tok] + stop)
+    words = [words2i[w] if w in words2i else words2i["<UNK>"] for w in sentence]
+    return (list(sentence), torch.tensor(words, dtype=torch.long, device=device))
+    #return ([torch.tensor(cs, dtype=torch.long, device=device) for cs in chars],
+    #         torch.tensor(words, dtype=torch.long, device=device))

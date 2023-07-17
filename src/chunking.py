@@ -54,6 +54,17 @@ def import_chunking_data(split : Literal["test"] | Literal["train"] | Literal["d
         The chunking values as numerical features.
     """
 
+    def _remove_empty_sentences(tokens : Corpus, labels : List[List[int]]) -> Tuple[Corpus, List[List[int]]]:
+        tokens_updated : Corpus             = []
+        labels_updated : List[List[int]]    = []
+
+        for t, l in zip(tokens, labels):
+            if not len(t) == len(l) == 0:
+                tokens_updated.append(t)
+                labels_updated.append(l)
+        
+        return tokens_updated, labels_updated
+
     dataset : DatasetDict = cast(DatasetDict, load_dataset("conll2000"))
 
     tokens : Corpus
@@ -71,4 +82,4 @@ def import_chunking_data(split : Literal["test"] | Literal["train"] | Literal["d
         tokens = dataset["test"]["tokens"]
         labels = dataset["test"]["chunk_tags"]
 
-    return tokens, [[label for label in sentence] for sentence in labels]
+    return _remove_empty_sentences(tokens, labels)

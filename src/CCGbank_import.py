@@ -1,5 +1,43 @@
+"""
+This module imports data from the
+supertag annotated CCGrebank corpus.
+
+Classes
+----------
+
+Functions
+----------
+construct_tree
+import_auto
+component_generator
+simplify
+import_parg
+import_complex
+import_complex_multi
+remove_UB
+get_long_distance_sketch
+
+Constants
+----------
+SPLITS
+
+"""
+
+
+from helpers import corpus_apply, intuple, outtuple, listify, mlistify
+
+# standard splits for ccgrebank import
 from typing import List, Tuple, Dict, Sequence, Union, Literal, Hashable, Set
 import os
+
+from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
+
+from types import MappingProxyType
+
+SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train" : (200,2200), 
+                                                                    "dev" : (2201,2300), 
+                                                                    "test" : (2301,2400)})
+"""TODO"""
 
 class Tree:
     def __init__(self, category : str, children : List["Tree"] = [], parent : "None | Tree" = None):
@@ -80,6 +118,23 @@ class Leaf(Tree):
         return [self]
 
 def construct_tree(treestring : str) -> Tree:
+    '''
+    TODO
+
+    Parameters
+    ----------
+    filename : str
+        Path and filename.
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        Retrieved tokens.
+    supertags : List[List[str]]
+        Supertag assignments for the tokens.
+    scopes : List[List[str]]
+        TODO
+    '''
 
     def _construct_tree(treestring : str) -> Tree:
 
@@ -127,107 +182,83 @@ def construct_tree(treestring : str) -> Tree:
     constructed_tree.set_index(0)
     return constructed_tree
 
-def import_auto(filename : str) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
+def import_auto(filename : str) -> Tuple[Corpus, Corpus, Corpus]:
+    '''
+    Imports tokens, supertags and ... from
+    machine-readable derivation file from the
+    CCGrebank (CCG annotated Penn Treebank).
+        leftaction : TODO
+        rightaction : TODO
 
-    output_list : Tuple[List[List[str]], List[List[str]], List[List[str]]] = ([], [], [])
+    Parameters
+    ----------
+    filename : str
+        Path and filename.
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        Retrieved tokens.
+    supertags : List[List[str]]
+        Supertag assignments for the tokens.
+    scopes : List[List[str]]
+        TODO
+    '''
+    tokens      : Corpus = []
+    supertags   : Corpus = []
+    scopes      : Corpus = []
+    output_list : Tuple[Corpus, Corpus, Corpus] = ([], [], [])
 
     with open(filename, 'r') as file:
 
-
+        # one sentence per line
         for line in file:
             if line[0:2] == "ID" or line[0] != "(":
                 pass
+
             else:
-                
-                tokens : List[str] = []
-                supertags : List[str] = []
+                sen_tokens      : Sentence = []
+                sen_supertags   : Sentence = []
 
                 first_n : int = 0
 
                 for n, c in enumerate(line):
                     if c == "<":
                         first_n = n
+
                     elif c == ">":
-                        
                         element : str = line[first_n+1:n]
 
                         element_parts : List[str] = element.split()
 
                         if len(element_parts) > 4:
-                            tokens.append(element_parts[4])
+                            sen_tokens.append(element_parts[4])
+                            sen_supertags.append(simplify(element_parts[5]))
 
-                            #supertags.append(element_parts[1])
-                            supertags.append(simplify(element_parts[5]))
+                supertags.append(sen_supertags)
+                tokens.append(sen_tokens)
 
-                output_list[0].append(supertags)
-                output_list[1].append(tokens)
                 tree : Tree = construct_tree(line)
-                output_list[2].append(["_".join([str(s) for s in leaf.get_scope(2)]) for leaf in tree.leafs])
+                scopes.append(["_".join([str(s) for s in leaf.get_scope(2)]) for leaf in tree.leafs])
 
-                if len(tree.leafs) != len(tokens):
-                    print([leaf.word for leaf in tree.leafs], tokens)
-                #tree : Tree = construct_tree(line)
-                #for leaf, supertag in zip(tree.leafs, supertags):
-                #    print("_".join([str(s) for s in leaf.get_scope(2)]), supertag)
-    assert(len(output_list[0]) == len(output_list[1]) == len(output_list[2]))
-    return output_list
-
-#def component_generator(element : str):
-#
-#        NUMBERS = "0123456789"
-#
-#        current_component   : str   = ""
-#        in_number           : bool  = False
-#
-#        for c in element:
-#
-#            if c == "_":
-#                current_component += c
-#                yield (False, current_component)
-#                current_component = ""
-#
-#                in_number = True
-#            
-#            elif in_number and not c in NUMBERS:
-#                yield (True, current_component)
-#                current_component = c
-#                in_number = False
-#            
-#            else:
-#                current_component += c
-# 
-#        yield (in_number, current_component)
-
-def component_generator(element : str):
-
-        NUMBERS = "0123456789"
-
-        current_component   : str   = ""
-        in_number           : bool  = False
-
-        for c in element:
-
-            if c == "_":
-                #current_component += c
-                yield (False, current_component)
-                current_component = ""
-
-                in_number = True
-            
-            elif in_number and not c in NUMBERS:
-                #yield (True, current_component)
-                current_component = c
-                in_number = False
-                 
-            
-            elif c not in NUMBERS:
-                current_component += c
-            
-        if not in_number:
-            yield (in_number, current_component)
+    assert(len(tokens) == len(supertags) == len(scopes))
+    return tokens, supertags, scopes
 
 
 def simplify(element : str) -> str:
+    '''
+    What?
+
+    Parameters
+    ----------
+    element : str
+        TODO
+
+    Returns
+    -------
+    str
+        TODO
+    '''
 
 
     if len(element.split("_")) == 1:
@@ -251,26 +282,72 @@ def simplify(element : str) -> str:
     return simple_element
 
 
+def component_generator(element : str):
+    '''
+    TODO
+    '''
+    NUMBERS = "0123456789"
+    current_component   : str   = ""
+    in_number           : bool  = False
+    for c in element:
+        if c == "_":
+            #current_component += c
+            yield (False, current_component)
+            current_component = ""
+            in_number = True
+        
+        elif in_number and not c in NUMBERS:
+            #yield (True, current_component)
+            current_component = c
+            in_number = False
+             
+        
+        elif c not in NUMBERS:
+            current_component += c
+        
+    if not in_number:
+        yield (in_number, current_component)
 
 
-def import_parg(filename : str) -> Tuple[List[List[str]], List[List[str]]]:
+def import_parg(filename : str, limit : int = 5) -> Tuple[List[List[str]], List[List[str]]]:
+    '''
+    Imports predicate-argument structure 
+    file from CCGrebank (CCG annotated Penn Treebank) 
+    corpus and converts the information into
+    two different features:
+        leftaction : TODO
+        rightaction : TODO
 
-    output_list : Tuple[List[List[str]], List[List[str]]] = ([], [])
+    Parameters
+    ----------
+    filename : str
+        Path and filename.
+    limit : int, default = 5
+        Window around word to capture
+        relationships in.
 
-    LIMIT : Literal[5] = 5
+    Returns
+    -------
+    action_left : List[List[str]]
+        TODO
+    action_right : List[List[str]]
+        TODO
+    '''
+
+    output_list : Tuple[Corpus, Corpus] = ([], [])
 
     with open(filename, 'r') as file:
 
         sentence_number : int = 0
-        
-        sentence_dict_left : Dict[int, List[List[str]]] = {}
-        sentence_dict_right : Dict[int, List[List[str]]] = {}
+
+        sentence_left : List[Corpus] = []
+        sentence_right : List[Corpus] = []
 
         for line in file:
             if line[0:2] == "<s":
                 sentence_number += 1
-                sentence_dict_left[sentence_number -1] = [["0"] for _ in range(int(line.split()[-1]) + 1)]
-                sentence_dict_right[sentence_number -1] = [["0"] for _ in range(int(line.split()[-1]) + 1)]
+                sentence_left.append([["0"] for _ in range(int(line.split()[-1]) + 1)])
+                sentence_right.append([["0"] for _ in range(int(line.split()[-1]) + 1)])
                 pass
             
             elif line == "<\\s>\n" or line == "<\\s> \n":
@@ -279,146 +356,183 @@ def import_parg(filename : str) -> Tuple[List[List[str]], List[List[str]]]:
             else:
                 line_components : List[str] = line.split(" 	 ")
                 
-                
                 arg_num : str = line_components[3]
                 relative_position : int = int(line_components[0]) - int(line_components[1])
 
-                
-
                 if relative_position < 0:
-                    if relative_position > -LIMIT:
-                    #relative_position = max(relative_position, -5)
-                        sentence_dict_left[sentence_number - 1][int(line_components[1])].append(arg_num + ":" + str(relative_position))
+                    if relative_position > -limit:
+                        sentence_left[sentence_number -1][int(line_components[1])].append(arg_num + ":" + str(relative_position))
                 else:
-                    if relative_position < LIMIT:
-                    #relative_position = min(relative_position, 5)
-                        sentence_dict_right[sentence_number - 1][int(line_components[1])].append(arg_num + ":" + str(relative_position))
+                    if relative_position < limit:
+                        sentence_right[sentence_number - 1][int(line_components[1])].append(arg_num + ":" + str(relative_position))
 
-        output_list = ( [["_".join(word) for word in sentence] for sentence in sentence_dict_left.values() if len(sentence) > 1 ], \
-                        [["_".join(word) for word in sentence] for sentence in sentence_dict_right.values() if len(sentence) > 1 ])
+        output_list = ( [["_".join(word) for word in sentence] for sentence in sentence_left if len(sentence) > 1 ], \
+                        [["_".join(word) for word in sentence] for sentence in sentence_right if len(sentence) > 1 ])
         
 
     return output_list
 
-def import_complex(num : int, data_dir : str) -> Tuple[List[List[str]], List[List[str]], List[List[str]], List[List[str]], List[List[str]]]:
+def import_complex(num : int, data_dir : str) -> Tuple[Corpus, Corpus, Corpus, Corpus, Corpus, Corpus]:
+    '''
+    Imports a file from the CCGrebank 
+    (CCG annotated Penn Treebank) 
+    corpus and converts the information into
+    five different features:
+        supertags : lexical category assignments
+        scopes : TODO 
+        leftaction : TODO,
+        rightaction : TODO
+        dependency : TODO obsolete
 
-    str_num : str = "0" * (4  - len(str(num))) + str(num)
-    str_section : str = str_num[0:2]
+    Parameters
+    ----------
+    num : int
+        Numbers of the file in the corpus data
+        to extract. The file contains a variable
+        number of sentences.
+    data_dir : str
+        Directory of the corpus
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        Retrieved tokens.
+    supertags : List[List[str]]
+        Supertag assignments.
+    scopes : List[List[str]]
+        TODO
+    action_left : List[List[str]]
+        TODO
+    action_right : List[List[str]]
+        TODO
+    dependency : List[List[str]]
+        obsolete
+    '''
+
+    str_num : str = "0" * (4  - len(str(num))) + str(num)       # Convert the file number into a four-diget number with
+                                                                # prepended zeros in string format.
+
+    str_section : str = str_num[0:2]                            # The first two digets represent the section number.
+                                                                # DepCCG sorts the files into section folders with
+                                                                # a certain number of multiple-sentence files.
 
     auto_dir : str = f"{data_dir}/AUTO/{str_section}/wsj_{str_num}.auto"
     parg_dir : str = f"{data_dir}/PARG/{str_section}/wsj_{str_num}.parg"
 
     if not os.path.exists(auto_dir) or not os.path.exists(parg_dir):
-        return ([],[],[],[],[])
+        return ([],[],[],[],[],[])
 
-    auto : Tuple[List[List[str]], List[List[str]], List[List[str]]] = import_auto(auto_dir)
-    parg : Tuple[List[List[str]], List[List[str]]] = import_parg(parg_dir)
+    auto = listify(intuple(import_auto(auto_dir)))   # machine-readable CCG derivation files
+    parg = listify(intuple(import_parg(parg_dir)))     # predicate-argument structure file
 
-    
-    #include = [comb for comb in zip(*auto, *parg) if len(comb[1]) != 1]
-    #print(auto, parg)
+    max_index : int = max(len(auto), len(parg))
 
-    max_index : int = max(len(auto[0]), len(parg[0]))
-
+    # This part deals with aligning problems due to PARG containing empty
+    # sentences where sentences from the PTB were not translated
+    # while they were simply removed from AUTO without a trace.
     for sen_num in range(max_index):
         if sen_num >= max_index:
             break
+
+        if sen_num >= len(auto):
+            parg.pop(sen_num)
+            break
+
+        elif sen_num >= len(parg):
+            auto.pop(sen_num)
+            break
         
-        supertags = auto[0]
-        tokens = auto[1]
-        scopes = auto[2]
+        if not (len(auto[sen_num]) == len(parg[sen_num])):
 
-        left = parg[0]
-        right = parg[1]
+            if len(auto[sen_num]) < len(parg[sen_num]):
 
-        if sen_num >= len(auto[0]):
-            left.pop(sen_num)
-            right.pop(sen_num)
-            break
-
-        elif sen_num >= len(parg[0]):
-            supertags.pop(sen_num)
-            tokens.pop(sen_num)
-            scopes.pop(sen_num)
-            break
-
-        supertags_len = len(auto[0][sen_num])
-        tokens_len = len(auto[1][sen_num])
-        scopes_len = len(auto[2][sen_num])
-
-        left_len = len(parg[0][sen_num])
-        right_len = len(parg[1][sen_num])
-
-        if not (supertags_len == tokens_len and tokens_len == scopes_len and scopes_len == left_len and left_len == right_len):
-
-            if supertags_len < left_len:
-
-                auto[0].pop(sen_num)
-                auto[1].pop(sen_num)
-                auto[2].pop(sen_num)
+                auto.pop(sen_num)
 
                 max_index -= 1
     
-    return auto + parg
+    # obsolete
 
+    assert(len(auto) == len(parg))
+
+    for i, j in zip(auto, parg):
+        assert(len(i) == len(j))
+
+    tokens      : Corpus
+    supertags   : Corpus
+    scopes      : Corpus
+
+    tokens, supertags, scopes = listify(*outtuple(auto))
+
+    leftaction  : Corpus
+    rightaction : Corpus
+
+    leftaction, rightaction = listify(*outtuple(parg))
+
+    dependency : Corpus = corpus_apply(supertags, get_long_distance_sketch)
+
+    return tokens, supertags, scopes, leftaction, rightaction, dependency
     
 
-def import_complex_multi(nums : Sequence[int], data_dir : str, limit : int = -1) -> Tuple[List[List[str]], List[List[str]], List[List[str]], List[List[str]], List[List[str]], List[List[str]]]:
+def import_complex_multi(nums : Sequence[int], data_dir : str) -> Tuple[Corpus, Corpus, Corpus, Corpus, Corpus, Corpus]:
+    '''
+    Imports a sequence of files from 
+    the CCGrebank (CCG annotated Penn Treebank) 
+    corpus and converts the information into
+    five different features:
+        supertags : lexical category assignments
+        scopes : TODO 
+        leftaction : TODO,
+        rightaction : TODO
+        dependency : TODO obsolete
 
-    supertags : List[List[str]] = []
-    tokens : List[List[str]] = []
-    action_left : List[List[str]] = []
-    action_right : List[List[str]] = []
-    scopes : List[List[str]] = []
+    Parameters
+    ----------
+    nums : Sequence[int]
+        Numbers of the files in the corpus data
+        to extract. Each file contains several
+        sentences.
+    data_dir : str
+        Directory of the corpus
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        Retrieved tokens.
+    supertags : List[List[str]]
+        Supertag assignments.
+    scopes : List[List[str]]
+        TODO
+    action_left : List[List[str]]
+        TODO
+    action_right : List[List[str]]
+        TODO
+    dependency : List[List[str]]
+        obsolete
+    '''
+
+    supertags   : Corpus = []
+    tokens      : Corpus = []
+    action_left : Corpus = []
+    action_right    : Corpus = []
+    scopes      : Corpus = []
+    dependency  : Corpus = []
    
-        
+    # For each file number, perform extraction
     for n in nums:
         
-        #print(type(import_complex(n, data_dir)))
-        
-        n_supertags, n_tokens, n_scopes, n_action_left, n_action_right = import_complex(n, data_dir)
+        n_tokens, n_supertags, n_scopes, n_action_left, n_action_right, n_dependency = import_complex(n, data_dir)
 
-        if not n_supertags == []:
+        supertags   += n_supertags
+        tokens      += n_tokens
+        action_left += n_action_left
+        action_right    += n_action_right
+        scopes      += n_scopes
+        dependency  += n_dependency
 
-            supertags += n_supertags
-            tokens += n_tokens
-            action_left += n_action_left
-            action_right += n_action_right
-            scopes += n_scopes
-        
-        if limit != -1 and len(supertags) >= limit:
-            break
-    
-    dependency_supertags : List[List[str]] = [[get_long_distance_sketch(supertag) for supertag in sentence] for sentence in supertags]
-    #supertags_org = supertags
-    #supertags = [[remove_UB(supertag) for supertag in sentence] for sentence in supertags]
-    #
-    ##for sentence1, sentence2, sentence3 in zip(supertags_org, supertags, dependency_supertags):
-    ##    for s1, s2, s3 in zip(sentence1, sentence2, sentence3):
-    ##        print(s1, s2, s3)
-    #sum_X = sum([1 for sentence in dependency_supertags for tag in sentence if tag == "X"])
-    #print("X %", sum_X / sum([len(sentence) for sentence in dependency_supertags]))
+    # assert that the lengths all correspond to each other
+    assert(len(supertags) == len(tokens) == len(scopes) == len(action_left) == len(action_right) == len(dependency))
 
-    #for sentence1, sentence2, sentence3 in zip(scopes, action_left, action_right):
-    #    for w1, w2, w3 in zip(sentence1, sentence2, sentence3):
-    #        print(w1, w2, w3) 
-
-
-    if not len(supertags) == len(tokens) == len(scopes) == len(action_left) == len(action_right) == len(dependency_supertags):
-        print(len(supertags), len(tokens), len(scopes), len(action_left), len(action_right), len(dependency_supertags))
-        raise Exception
-
-    for i in range(len(supertags)):
-        if not len(supertags[i]) == len(tokens[i]) == len(scopes[i]) == len(action_left[i]) == len(action_right[i]) == len(dependency_supertags[i]):
-            print(supertags[i], tokens[i], scopes[i], action_left[i], action_right[i], dependency_supertags[i])
-            raise Exception
-
-    if limit == -1:
-        return supertags, tokens, scopes, action_left, action_right, dependency_supertags
-    
-
-    else: 
-        return supertags[:limit], tokens[:limit], scopes[:limit], action_left[:limit], action_right[:limit], dependency_supertags[:limit]
+    return tokens, supertags, scopes, action_left, action_right, dependency
 
 
 # information:
@@ -426,6 +540,21 @@ def import_complex_multi(nums : Sequence[int], data_dir : str, limit : int = -1)
 # argument number
 
 def remove_UB(supertag : str) -> str:
+    '''
+    Remove mediation indicator for locally mediated (":U")
+    and for long-range ("B") dependencies from
+    supertag to retrieve clean supertags.
+
+    Parameters
+    ----------
+    supertag : str
+        Supertag to convert.
+
+    Returns
+    -------
+    str
+        Supertag with removed mediation information
+    '''
     in_UB : bool = False
     final_supertag : str = ""
 
@@ -446,16 +575,23 @@ def remove_UB(supertag : str) -> str:
 
 
 def get_long_distance_sketch(supertag : str) -> str:
-    '''Converts supertag into sketch with
-    all elements replaced by "X"
+    '''
+    Obsolete
 
+    Converts supertag into sketch with
+    all elements replaced by "X".
     Multi-character symbols are treated
     the same as one-character symbols.
 
-    :param supertag: supertag
-    :type supertag: str
-    :return: sketch
-    :rtype: str
+    Parameters
+    ----------
+    supertag : str
+        Supertag to convert
+
+    Returns
+    -------
+    str
+        Extracted sketch
     '''
     
     has_dependency : bool = False

@@ -1,78 +1,152 @@
+"""
+Module for importing a dependency relation annotated 
+version of the Penn Treebank corpus and to convert
+dependency graphs to tag features. The provided corpus
+must be in .conllu format.
+
+Functions
+----------
+sentence_parse
+    Extracts dependency features from a retrieved DepPTB sentence.
+corpus_parse
+    Retrieves tokens and dependency features of a split of the corpus.
+
+CONSTANTS
+----------
+SPLITS
+    Standard splits of the Penn Treebank by sentence number.
+"""
+
+from types import MappingProxyType
+
 from conllu import parse
-from conllu.models import TokenList, Token
+from conllu.models import TokenList
 from io import open
 
-from typing import List, Tuple, Dict, Set
+from typing import List, Tuple, Dict, Literal
 
-#dir = "/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/new/discoparset-v1.0/multilingual_disco_data/data/dptb/train_silver.conll"
-#def import_data(dir = dir) -> None:
-#    data_file = open(dir, "r", encoding="utf-8")
+SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train"   : (3915, 43746 + 1),
+                                                                    "dev"     : (43747, 45446 + 1),
+                                                                    "test"    : (45447, 47862 + 1)})
+"""
+Standard splits of the Penn Treebank by sentence number.
+Section 2-22 train, 22-23 dev, 24 test.
+"""
 
-train_split : slice = slice(3915, 43746 + 1)
-dev_split   : slice = slice(43747, 45446 + 1)
-test_split  : slice = slice(45447, 47862 + 1)
-splits : Dict[str, slice] = {"train" : train_split, "dev" : dev_split, "test" : test_split}
+def sentence_parse(sentence : TokenList, max_diff_in : int = 5, max_diff_out : int = 2) \
+                                                            -> Tuple[List[str], List[str]]:
+    """
+    Converts a sentence and a dependency structure
+    provided as a ``conllu.models.TokenList`` into
+    a list of tokens and a list of dependency features.
+    A feature consists of the dependency relation type of 
+    the incoming arc as well as the relative position 
+    of the maximum left-side outgoing arc and the minimum 
+    right-side outgoing arc.
 
-def sentence_parse(sentence : TokenList) -> Tuple[List[str], List[str]]:
-    tokens : List[str] = []
-    pos : List[str] = []
-    in_dep : List[str] = []
-    in_deptype : List[str] = []
-    out_dep : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
-    total_dep : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
-    out_deptypes : List[List[str]] = [[] for _ in range(len(sentence))]
+    Parameters
+    ----------
+    sentence : TokenList
+        Input dependency graph.
+    max_diff_in : int, default = 5
+        Currently obsolete.
+    max_diff_out : int, default = 2
+        Maximum absolute relative output distance. 
+        Larger distances are capped at this value.
+        The default 2 maintains a small number of 
+        tags while still capturing the notion of
+        adjacent or long-range relationships.
 
-    max_diff = 5
-    max_diff_out = 2
+    Returns
+    -------
+    tokens : List[str]
+        The retrieved tokens.
+    features : List[str]
+        The retrieved dependency features.
+    """
+    tokens  : List[str] = []
+    pos     : List[str] = []
+
+    in_dep      : List[str] = []
+    in_deptype  : List[str] = []
+
+    out_dep     : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
+    out_deptypes    : List[List[str]] = [[] for _ in range(len(sentence))]
+
+    total_dep   : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
+
+    # TODO: Explain what is happening here
     for token in sentence:
         tokens.append(token['form'])
         pos.append(token["upos"])
-        if True:
-            diff : int = token['id']-token["head"]
-            if diff > max_diff_out:
-                diff = max_diff_out
-            elif diff < -max_diff_out:
-                diff = -max_diff_out
-            if token["head"] > 0:
-                out_dep[token["head"] - 1][0 if diff < 0 else 1].append(diff) #str(token["deprel"]).split(":")[0])#+ ":" + str(token["upos"]))
-                total_dep[token["head"] -1][0 if diff < 0 else 1].append(token['id'] -1)
-                out_deptypes[token["head"] -1].append(str(token["deprel"]).split(":")[0])
-        in_diff : int = token["head"] - token["id"]
-        if in_diff > max_diff:
-            in_diff = max_diff
-        elif in_diff < -max_diff:
-            in_diff = -max_diff
+        
+        diff : int = token['id']-token["head"]
+        if diff > max_diff_out:
+            diff = max_diff_out
+        elif diff < -max_diff_out:
+            diff = -max_diff_out
 
-        in_dep.append("" if token["deprel"] == "punct" and False else token["deprel"].split(":")[0] + "/" + str(in_diff))# + ":" + ("ROOT" if token["head"] == 0 else sentence[token["head"] - 1]["upos"]))
+        if token["head"] > 0:
+            out_dep[token["head"] - 1][0 if diff < 0 else 1].append(diff)
+            total_dep[token["head"] -1][0 if diff < 0 else 1].append(token['id'] -1)
+            out_deptypes[token["head"] -1].append(str(token["deprel"]).split(":")[0])
+
+        in_diff : int = token["head"] - token["id"]
+        if in_diff > max_diff_in:
+            in_diff = max_diff_in
+        elif in_diff < -max_diff_in:
+            in_diff = -max_diff_in
+
+        in_dep.append("" if token["deprel"] == "punct" and False else token["deprel"].split(":")[0] + "/" + str(in_diff))
         in_deptype.append(token["deprel"].split(":")[0])
 
-    #return tokens, [f"{i}+{max(set(o[0])) if len(o[0]) > 0 else ''}_{min(set(o[1])) if len(o[1]) > 0 else ''}" for p, i, o in zip(pos, in_dep, out_dep)]
-    
-    #return tokens, [f"{i}_{sentence[min(set(o_idx[0]))]['deprel'] if len(o_idx[0]) > 0 else 'null'}_{sentence[max(set(o_idx[0]))]['deprel'] if len(o_idx[0]) > 0 else 'null'}_{sentence[min(set(o_idx[1]))]['deprel'] if len(o_idx[1]) > 0 else 'null'}_{sentence[max(set(o_idx[1]))]['deprel'] if len(o_idx[1]) > 0 else 'null'}" for i, o_idx in zip(in_deptype, total_dep)]
-    #return tokens, [f"{i}_{sentence[max(set(o_idx[0]))]['deprel'].split(':')[0] if len(o_idx[0]) > 0 else 'null'}_{sentence[min(set(o_idx[1]))]['deprel'].split(':')[0] if len(o_idx[1]) > 0 else 'null'}" for i, o_idx in zip(in_deptype, total_dep)]
     return tokens, [f"{i}_{str(max(set(o[0]))) if len(o[0]) > 0 else '0'}_{str(min(set(o[1]))) if len(o[1]) > 0 else '0'}" for i, o in zip(in_deptype, out_dep)]
 
-def corpus_parse(filename : str, split) -> Tuple[List[List[str]], List[List[str]]]:
+def corpus_parse(filename : str, split : Literal["test"] | Literal["train"] | Literal["dev"], 
+                 splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]] = SPLITS) -> Tuple[List[List[str]], List[List[str]]]:
+    """
+    Retrieves tokens and lexicalised dependency features
+    of a split of a dependency annotated corpus.
+    Each token in a sequence receives as feature the
+    dependency relation type of its incoming arc as well as
+    the relative position of the maximum left-side outgoing
+    arc and the minimum right-side outgoing arc.
+
+    Parameters
+    ----------
+    filename : str
+        path to depPTB .conll file (not split)
+    split : Literal["test"] | Literal["train"] | Literal["dev"]
+        The split of the dataset to return.
+    splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]]
+        Mapping from split name to corresponding
+        sentence number slice in the corpus.
+        Standard splits are set as default.
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        The retrieved tokens.
+    features : List[List[str]]
+        The retrieved dependency features.
+
+    See Also
+    -------
+    depptb.SPLITS
+    """
+    
     data_file = open(filename, "r", encoding="utf-8").read()
-    parselist = parse(data_file)[splits[split]]
-    corpus_tokens       : List[List[str]] = []
-    corpus_supertags    : List[List[str]] = []
+    parselist = parse(data_file)[slice(*splits_dict[split])]
+    tokens      : List[List[str]] = []
+    features    : List[List[str]] = []
 
     for sentence in parselist:
-        tokens      : List[str]
-        supertags   : List[str]
+        sen_tokens      : List[str]
+        sen_features    : List[str]
 
-        tokens, supertags = sentence_parse(sentence)
+        sen_tokens, sen_features = sentence_parse(sentence)
 
-        corpus_tokens.append(tokens)
-        corpus_supertags.append(supertags)
+        tokens.append(sen_tokens)
+        features.append(sen_features)
 
-    return corpus_tokens, corpus_supertags
-
-def build_set(corpus_supertags : List[List[str]]) -> Tuple[Set[str], Dict[str, int]]:
-    flat_list : List[str] = [supertag for sentence in corpus_supertags for supertag in sentence]
-    frequencies : Dict[str, int] = {supertag : 0 for supertag in flat_list}
-    for sentence in corpus_supertags:
-        for supertag in sentence:
-            frequencies[supertag] += 1
-    return set(flat_list), frequencies
+    return tokens, features
