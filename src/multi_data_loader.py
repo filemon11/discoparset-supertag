@@ -109,8 +109,8 @@ def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] |
     The following features are extracted:
         supertags : lexical category assignments
         scopes : range boundaries of the supertag's predecessors in the derivation 
-        leftaction : TODO,
-        rightaction : TODO
+        leftaction : relative position of a supertag's left arguments,
+        rightaction : relative position of a supertag's right arguments
 
     Parameters
     ----------

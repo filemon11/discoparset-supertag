@@ -24,6 +24,7 @@ from conllu.models import TokenList
 from io import open
 
 from typing import List, Tuple, Dict, Literal
+from parsing_typing import Sentence, Corpus
 
 SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train"   : (3915, 43746 + 1),
                                                                     "dev"     : (43747, 45446 + 1),
@@ -34,7 +35,7 @@ Section 2-22 train, 22-23 dev, 24 test.
 """
 
 def sentence_parse(sentence : TokenList, max_diff_in : int = 5, max_diff_out : int = 2) \
-                                                            -> Tuple[List[str], List[str]]:
+                                                            -> Tuple[Sentence, Sentence]:
     """
     Converts a sentence and a dependency structure
     provided as a ``conllu.models.TokenList`` into
@@ -64,13 +65,13 @@ def sentence_parse(sentence : TokenList, max_diff_in : int = 5, max_diff_out : i
     features : List[str]
         The retrieved dependency features.
     """
-    tokens  : List[str] = []
-    pos     : List[str] = []
+    tokens  : Sentence = []
+    pos     : Sentence = []
 
-    in_dep      : List[str] = []
-    in_deptype  : List[str] = []
+    in_dep      : Sentence = []
+    in_deptype  : Sentence = []
 
-    out_dep     : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
+    out_dep         : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
     out_deptypes    : List[List[str]] = [[] for _ in range(len(sentence))]
 
     total_dep   : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
@@ -103,7 +104,7 @@ def sentence_parse(sentence : TokenList, max_diff_in : int = 5, max_diff_out : i
     return tokens, [f"{i}_{str(max(set(o[0]))) if len(o[0]) > 0 else '0'}_{str(min(set(o[1]))) if len(o[1]) > 0 else '0'}" for i, o in zip(in_deptype, out_dep)]
 
 def corpus_parse(filename : str, split : Literal["test"] | Literal["train"] | Literal["dev"], 
-                 splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]] = SPLITS) -> Tuple[List[List[str]], List[List[str]]]:
+                 splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]] = SPLITS) -> Tuple[Corpus, Corpus]:
     """
     Retrieves tokens and lexicalised dependency features
     of a split of a dependency annotated corpus.
@@ -137,12 +138,12 @@ def corpus_parse(filename : str, split : Literal["test"] | Literal["train"] | Li
     
     data_file = open(filename, "r", encoding="utf-8").read()
     parselist = parse(data_file)[slice(*splits_dict[split])]
-    tokens      : List[List[str]] = []
-    features    : List[List[str]] = []
+    tokens      : Corpus = []
+    features    : Corpus = []
 
     for sentence in parselist:
-        sen_tokens      : List[str]
-        sen_features    : List[str]
+        sen_tokens      : Sentence
+        sen_features    : Sentence
 
         sen_tokens, sen_features = sentence_parse(sentence)
 

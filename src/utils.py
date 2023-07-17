@@ -1,5 +1,7 @@
 """
 This module provides functions for corpus data management.
+They are moved from the original parser.py file here
+so that ``multi_data_loader`` can import them as well.
 
 Functions
 ----------
