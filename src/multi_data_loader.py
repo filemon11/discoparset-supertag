@@ -46,16 +46,19 @@ from collections import defaultdict
 import random
 import copy
 
+from types import MappingProxyType
+
 from typing import Dict, Tuple, List, Optional, Set, Literal, TypeVar, cast, Sequence, Mapping
 from parsing_typing import Corpus, AnyCorpus, Device, Sentence
 
 # specifying the annotated corpus the available auxiliary features are based on
-# TODO CHANGE INTO IMMUTABLE
-tasks : Dict[str, Tuple[str, ...]] = {"ccg" : ("supertag", "scope", "leftaction", "rightaction", "head", "arg", "sketch", "argstruct", "near", "functor"),
-                                      "depptb" : ("dep",),
-                                      "conll2000" : ("chunking",)}
+TASKS : MappingProxyType[str, Tuple[str, ...]] = MappingProxyType({ "ccg" : ("supertag", "scope", "leftaction", 
+                                                                            "rightaction", "head", "arg", "sketch", 
+                                                                            "argstruct", "near", "functor"),
+                                                                    "depptb" : ("dep",),
+                                                                    "conll2000" : ("chunking",)})
 
-task_to_corpus : Dict[str, str] = {task : corpus for corpus, task_list in tasks.items() for task in task_list}
+TASK2CORPUS : MappingProxyType[str, str] = MappingProxyType({task : corpus for corpus, task_list in TASKS.items() for task in task_list})
 
 V = TypeVar("V")
 Y = TypeVar("Y")
@@ -105,7 +108,7 @@ def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] |
     The standard split is used (section 2-22 train, 22-23 dev, 24 test).
     The following features are extracted:
         supertags : lexical category assignments
-        scopes : TODO 
+        scopes : range boundaries of the supertag's predecessors in the derivation 
         leftaction : TODO,
         rightaction : TODO
 
@@ -252,7 +255,7 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
     for task in tasks:
         # ignore "parsing" and "tag" tasks
         if not task in ("parsing", "tag"):
-            goal_tasks_by_corpus[task_to_corpus[task]].append(task)
+            goal_tasks_by_corpus[TASK2CORPUS[task]].append(task)
 
     # import the necessary corpora
     for corpus in goal_tasks_by_corpus.keys():
@@ -429,16 +432,13 @@ class DataLoader():
     corpora. Provides functions to load a variety of tasks 
     (tokens and annotations) and to convert into formats
     required by ``sfparser``. The class behaviour depends
-    on the ``split`` parameter when initialising:
+    on the ``mode`` parameter when initialising:
 
     "train" --  Computes ``vocab`` and ``tensor_features``
         attributes from the retrieved data when initialising.
-    "dev"   --  ``vocab`` must be provided from a "train"
-        DataLoader.
-    "test"  --  ``vocab`` can be provided with ``__init__`` or
-        loaded from saved data with the `load_data`
-        method later on.
-    TODO
+    "eval"  --  ``vocab`` must be provided separately either
+        when initalising or later on from saved data on the disk
+        via the ``load_vocab`` method.
 
     Attributes
     ----------
@@ -503,7 +503,6 @@ class DataLoader():
                     data : Optional[Dict[str, Tuple[Corpus, Dict[str, Corpus]]]] = None,
                     verbose : bool = False):
         """
-        TODO
         Initialising method for the ``DataLoader`` class.
         Automatically retrieves corpora specified in the
         ``tasks`` parameter. The retrieved corpora are shuffled. 
@@ -520,13 +519,14 @@ class DataLoader():
             Mapping from corpus names to their
             directories. Must be None if data
             is provided through the ``data`` parameter.
-        split : Optional[Literal["test"] | Literal["train"] | Literal["dev"], default = "train] TODO
-            Which split to retrieve. If "train", then ``vocab`` and
-            ``tensor_features`` are computed from the retrieved
-            data. If "dev", then ``vocab`` must be provided per
-            parameter.
+        split : Optional[Literal["test"] | Literal["train"] | Literal["dev"], default = "train]
+            Which split to retrieve. Must be None if data
+            is provided through the ``data`` parameter.
         mode : Literal["train"] | Literal["eval"]
-            TODO
+            If "train", then ``vocab`` and
+            ``tensor_features`` are computed from the retrieved
+            data. If "eval", then ``vocab`` can be provided per
+            parameter.
         limit : None | int, default = None, meaning no limit
             Number of sentences to sample per tasks.
         words2i : None | Dict[str, int], default = None
@@ -537,8 +537,8 @@ class DataLoader():
             Device to use for tensors.
         vocab : None | Dict[str, Tuple[Corpus, Dict[str, Corpus]]], default = None
             Mapping from task names to their i2task
-            and task2i mappings. Must be provided if 
-            ``split`` is "dev".
+            and task2i mappings. Must be None if
+            ``mode`` is "train".
         data : None | Dict[str, Tuple[Corpus, Dict[str, Corpus]]], default = None
             Data mapping, can be provided if extracted in
             before initialising the class. Then, the corpora
@@ -587,10 +587,12 @@ class DataLoader():
         if data is None:
             assert(tasks is not None)
             assert(corpus_dirs is not None)
+            assert(split is not None)
             self.data = import_data(tasks, corpus_dirs, split, limit)
         else:
             assert(tasks is None)
             assert(corpus_dirs is None)
+            assert(split is None)
             self.data = data
 
         self.num_sentences  = {task : len(corpus) for corpus, task_dict in self.data.values() for task in task_dict.keys()}
@@ -603,6 +605,7 @@ class DataLoader():
         
         if mode == "train":
             assert(device is not None)
+            assert(vocab is None)
             features    = self.features
             self.vocab  = features_to_vocab(features, verbose)
             self.tensor_features = features_to_tensor_features(features, self.vocab, device)
