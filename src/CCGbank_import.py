@@ -531,8 +531,16 @@ def import_parg(filename : str, limit : int = 5) -> Tuple[List[List[str]], List[
     file from CCGrebank (CCG annotated Penn Treebank) 
     corpus and converts the information into
     two different features:
-        leftaction : TODO
-        rightaction : TODO
+        leftaction : Argument slots of the supertag
+                        filled by items to the left including
+                        their relative position.
+        rightaction : Argument slots of the supertag
+                        filled by items to the right including
+                        their relative position.
+
+    For each argument, the number of the argument slot
+    (numbered from left to right in the supertag) is also
+    given.
 
     Parameters
     ----------
@@ -545,9 +553,9 @@ def import_parg(filename : str, limit : int = 5) -> Tuple[List[List[str]], List[
     Returns
     -------
     action_left : List[List[str]]
-        TODO
+        Corpus annotated with relative position of a supertag's arguments to its left as a feature.
     action_right : List[List[str]]
-        TODO
+        Corpus annotated with relative position of a supertag's arguments to its right as a feature.
     '''
 
     output_list : Tuple[Corpus, Corpus] = ([], [])
@@ -562,9 +570,9 @@ def import_parg(filename : str, limit : int = 5) -> Tuple[List[List[str]], List[
         for line in file:
             if line[0:2] == "<s":           # When a new sentence header is oberseved, the sentence number variable is incremented
                 sentence_number += 1
-                sentence_left.append([["0"] for _ in range(int(line.split()[-1]) + 1)])
-                sentence_right.append([["0"] for _ in range(int(line.split()[-1]) + 1)])
-                pass
+                sentence_left.append([["0"] for _ in range(int(line.split()[-1]) + 1)])     # line.split()[-1] gives the sentence length.
+                sentence_right.append([["0"] for _ in range(int(line.split()[-1]) + 1)])    # This creates placeholders for each element.
+                pass                                                                        # "0" is the relation-less standard tag.
             
             elif line == "<\\s>\n" or line == "<\\s> \n":
                 pass
@@ -572,20 +580,27 @@ def import_parg(filename : str, limit : int = 5) -> Tuple[List[List[str]], List[
             else:
                 line_components : List[str] = line.split(" 	 ")
                 
+                # Each line marks a dependency.
+                # Meaning of the indices:
+                # 0: position of word_i, 1: position of word_j, 2: supertag of word_j, 3: argument slot of word_j that is filled, 4: word_i, 5: word_j
                 arg_num : str = line_components[3]
                 relative_position : int = int(line_components[0]) - int(line_components[1])
 
-                if relative_position < 0:
+                if relative_position < 0:                   # cap at absolute limit
                     if relative_position > -limit:
                         sentence_left[sentence_number -1][int(line_components[1])].append(arg_num + ":" + str(relative_position))
+                    else:
+                        sentence_left[sentence_number -1][int(line_components[1])].append(arg_num + ":" + str(-limit))
                 else:
                     if relative_position < limit:
                         sentence_right[sentence_number - 1][int(line_components[1])].append(arg_num + ":" + str(relative_position))
+                    else:
+                        sentence_right[sentence_number - 1][int(line_components[1])].append(arg_num + ":" + str(limit))
 
-        output_list = ( [["_".join(word) for word in sentence] for sentence in sentence_left if len(sentence) > 1 ], \
-                        [["_".join(word) for word in sentence] for sentence in sentence_right if len(sentence) > 1 ])
+    # Concatenate the list of dependencies for each item into one feature.
+    output_list = ( [["_".join(word) for word in sentence] for sentence in sentence_left if len(sentence) > 1 ], \
+                    [["_".join(word) for word in sentence] for sentence in sentence_right if len(sentence) > 1 ])
         
-
     return output_list
 
 def import_complex(num : int, data_dir : str) -> Tuple[Corpus, Corpus, Corpus, Corpus, Corpus, Corpus]:
@@ -596,8 +611,8 @@ def import_complex(num : int, data_dir : str) -> Tuple[Corpus, Corpus, Corpus, C
     five different features:
         supertags : lexical category assignments
         scopes : range boundaries of the supertag's predecessors in the derivation  
-        leftaction : TODO,
-        rightaction : TODO
+        leftaction : Relative position of a supertag's left arguments.
+        rightaction : Relative positions of a supertag's right arguments.
         dependency : obsolete
 
     Parameters
@@ -616,11 +631,11 @@ def import_complex(num : int, data_dir : str) -> Tuple[Corpus, Corpus, Corpus, C
     supertags : List[List[str]]
         Supertag assignments.
     scopes : List[List[str]]
-        range boundaries of the supertag's predecessors in the derivation 
+        Range boundaries of the supertag's predecessors in the derivation.
     action_left : List[List[str]]
-        TODO
+        Relative position of a supertag's left arguments.
     action_right : List[List[str]]
-        TODO
+        Relative position of a supertag's right arguments.
     dependency : List[List[str]]
         obsolete
     '''
