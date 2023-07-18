@@ -29,10 +29,10 @@ dc=1e-7
 ep=4
 dropo=0.2
 dropb=0.2
-c=100
-C=100
+c=64
+C=256
 W=400
-H=200
+H=H=250
 B=1
 
 dropout="-D ${dropo} -Q ${dropb}"
@@ -44,7 +44,7 @@ mkdir -p ${2}
 args="${tr} ${dev} ${hyper}"
 
 (
-python sfparser.py train ${2} ${args} -l 0.01 -B 1 --gpu ${gpu} -w 32 -D 0.2 -K 0 --dyno 0.15 -s 10 -T "[['tag'],['arg','argstruct','head','functor','sketch'],['supertag'],['parsing']]" > ${2}/log.txt 2> ${2}/err.txt &&
+python sfparser.py train ${2} ${args} -l 0.01 -B 1 --gpu ${gpu} -w 300 -D 0.3 -K 0 --dyno 0.15 -s 10 -T "[['tag'],['arg','argstruct','head','functor','sketch'],['supertag'],['parsing']]" > ${2}/log.txt 2> ${2}/err.txt &&
 python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket -t 2 --gold ${dgold} -ctbk ${dev} -split "dev" > ${2}/eval_dev &&
 python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket -t 2 --gold ${tgold} -ctbk ${test} -split "test" > ${2}/eval_test  ) &
 wait
