@@ -32,7 +32,7 @@ dropb=0.2
 c=64
 C=256
 W=400
-H=H=250
+H=250
 B=1
 
 dropout="-D ${dropo} -Q ${dropb}"
