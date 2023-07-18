@@ -1153,7 +1153,7 @@ def main_eval(args, logger, device):
     # and multi-task tagging is requested
     if args.ctbk is not None:
         test_corpus = corpus_reader.read_ctbk_corpus(args.ctbk)
-        test_sentences, test_raw_sentences, test_sentences_copy, _ = prepare_corpus(test_corpus, words2i, device)
+        test_sentences, test_raw_sentences, _, _ = prepare_corpus(test_corpus, words2i, device)
 
         corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb}
 
@@ -1192,7 +1192,7 @@ def main_eval(args, logger, device):
         logger.info("parsing time: {:.2f} sentences per second, {:.2f} tokens per second".format(n_sentences / p_time, n_tokens / p_time))
 
         if args.ctbk is not None:
-            tag = eval_tagging(test_sentences, test_sentences_copy)
+            tag = eval_tagging(test_sentences, sentence_toks)
 
             for task in flat_task_list:
                 for t, f in zip(aux_loader.tensors[task], aux_loader.features[task]):
