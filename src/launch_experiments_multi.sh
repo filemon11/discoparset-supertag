@@ -45,8 +45,8 @@ args="${tr} ${dev} ${hyper}"
 
 (
 python sfparser.py train ${2} ${args} -l 0.01 -B 1 --gpu ${gpu} -w 32 -D 0.2 -K 0 --dyno 0.15 -s 10 -T "[['tag'],['supertag'],['parsing']]" > ${2}/log.txt 2> ${2}/err.txt &&
-python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket -t 2 --gold ${dgold} -ctbk ${dev} -split "dev" > ${2}/eval_dev &&
-python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket -t 2 --gold ${tgold} -ctbk ${test} -split "test" > ${2}/eval_test  ) &
+python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket -t 1 --gold ${dgold} -ctbk ${dev} -split "dev" > ${2}/eval_dev &&
+python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket -t 1 --gold ${tgold} -ctbk ${test} -split "test" > ${2}/eval_test  ) &
 wait
 
 
