@@ -25,17 +25,15 @@ import torch.nn.functional as F
 
 
 class Residual(nn.Module):
-    def __init__(self, size):
+    def __init__(self, i_size, h_size, r_size):
         super(Residual, self).__init__()
-        self.W = nn.Parameter(torch.Tensor(size * 3, size), requires_grad = True)
-        self.b = nn.Parameter(torch.Tensor(size), requires_grad = True)
+        self.W = nn.Parameter(torch.Tensor(i_size + h_size, h_size), requires_grad = True)
+        self.T = nn.Parameter(torch.Tensor(r_size, h_size), requires_grad = True) if h_size != r_size else nn.Identity()
                               
     def forward(self, hl, ht, h_n, h_o):
-        #print(hl.shape)
-        #print(ht.shape)
         g = torch.matmul(torch.cat((hl, ht), dim = -1), self.W)
-        g = torch.sigmoid(g)# + self.b)
-        return h_n + h_o * g
+        g = torch.sigmoid(g)
+        return h_n + (torch.matmul(h_o, self.T)) * g
 
 class LSTMModel(nn.Module):
     def __init__(self, input_size, n_layers, hidden_size,
@@ -90,7 +88,7 @@ class LSTMModel(nn.Module):
         self._reverse = reverse
 
         if residual:
-            self.residual = Residual(hidden_size)
+            self.residual = Residual(input_size, hidden_size, input_size)
         else:
             self.residual = None
 
@@ -160,13 +158,12 @@ class LSTMModel(nn.Module):
             for i in idx_range:
                 h_drop = self._state_drop(h)
                 i_drop = self._input_drop(X[i])
-
                 h_n, c = cell(i_drop, (h_drop, c))
 
-                if self.residual == None:
+                if self.residual is None:
                     h = h_n
                 else:
-                    h = self.residual(i_drop, h_drop, h_n, self._res_drop(residual_X[i]) if residual_X != None else None)
+                    h = self.residual(i_drop, h_drop, h_n, self._res_drop(residual_X[i]))
                 
                 ht.append(h)
                 ct.append(c)
@@ -188,12 +185,16 @@ class LSTMModel(nn.Module):
 
 class BiLSTM(nn.Module):
     def __init__(self, input_size, hidden_size,
-                 dropout_i=0, dropout_h=0, residual = False):
+                 dropout_i=0, dropout_h=0, gated_residual = False):
         super().__init__()
 
         self.input_size = input_size
-        self.lstm_forward = LSTMModel(input_size = input_size, n_layers = 1, hidden_size = hidden_size, dropout_i = dropout_i, dropout_h = dropout_h, residual = residual)
-        self.lstm_backward = LSTMModel(input_size = input_size, n_layers = 1, hidden_size = hidden_size, dropout_i = dropout_i, dropout_h = dropout_h, reverse = True, residual = residual)
+        self.lstm_forward = LSTMModel(input_size = input_size, n_layers = 1, 
+                                      hidden_size = hidden_size, dropout_i = dropout_i, 
+                                      dropout_h = dropout_h, residual = gated_residual)
+        self.lstm_backward = LSTMModel(input_size = input_size, n_layers = 1, 
+                                       hidden_size = hidden_size, dropout_i = dropout_i, 
+                                       dropout_h = dropout_h, reverse = True, residual = gated_residual)
     
     def forward(self, x, residual_x = None):
         """Assumes x is of shape (batch, sequence, feature)"""
@@ -203,9 +204,9 @@ class BiLSTM(nn.Module):
             hidden_sequence_b, (h_t_b, c_t_b) = self.lstm_backward(x)
         else:
             
-            hidden_sequence_f, (h_t_f, c_t_f) = self.lstm_forward(x, residual_x[:,:,:int(self.input_size/2)])
+            hidden_sequence_f, (h_t_f, c_t_f) = self.lstm_forward(x, residual_x)
 
-            hidden_sequence_b, (h_t_b, c_t_b) = self.lstm_backward(x, residual_x[:,:,int(self.input_size/2):])
+            hidden_sequence_b, (h_t_b, c_t_b) = self.lstm_backward(x, residual_x)
 
 
         hidden_sequence = torch.cat((hidden_sequence_f, hidden_sequence_b), dim = 2)

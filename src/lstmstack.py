@@ -115,7 +115,7 @@ class LSTMStack(nn.Module):
                 m = (6 / n_ids)**0.5
                 p.data.uniform_(-m, m)
 
-    def forward(self, X, depth = -1, batch=False, lengths=None):
+    def forward(self, X, depth = -1, batch=False):
         """
         Forward method for applying the model. Supports
         batch input of a list of variable list sequence 
@@ -189,25 +189,25 @@ class LSTMStack(nn.Module):
             return output_list
         
 
-# Batch padded LSTM stack
 class VardropLSTMStack(nn.Module):
     """multi-task LSTM stack
     TODO"""
-    def __init__(self, num_tasks, dim_lstm_in, dim_lstm_stack, emb_init, residual = True):
+    def __init__(self, depth, dim_lstm_in, dim_lstm_stack, vardrop_i, vardrop_h, residual = "addition"):
         super(VardropLSTMStack, self).__init__()
 
-        self.lstm_list = nn.ModuleList([BiLSTM(         input_size      = dim_lstm_in if n == 0 else dim_lstm_stack,
-                                                        hidden_size     = dim_lstm_stack //2,
-                                                        dropout_i       = 0.3,
-                                                        dropout_h       = 0.3,
-                                                        residual        = False) 
-                                                    for n in range(num_tasks)])
+        self.lstm_list = nn.ModuleList([BiLSTM( input_size      = dim_lstm_in if n == 0 else dim_lstm_stack,
+                                                hidden_size     = dim_lstm_stack //2,
+                                                dropout_i       = vardrop_i,
+                                                dropout_h       = vardrop_h,
+                                                gated_residual  = True if n > 0 and residual == "gated" else False) 
+                                                    for n in range(depth)])
 
-        self.residual = residual
+        self.residual       = True if residual == "addition" else False
+        self.gated_residual = True if residual == "gated" else False
 
-        self.initialize_parameters(emb_init)
+        self.initialize_parameters()
 
-    def initialize_parameters(self, emb_init):
+    def initialize_parameters(self):
         # Xavier initialization for every layer
         # uniform initialization for embeddings
         for mod in self.lstm_list:
@@ -216,7 +216,7 @@ class VardropLSTMStack(nn.Module):
                 m = (6 / n_ids)**0.5
                 p.data.uniform_(-m, m)
 
-    def forward(self, X, depth = -1, batch=False, lengths=None):
+    def forward(self, X, depth = -1, batch=False):
         """
         depth: level of stack to return; 0 is LSTM input
         batch: true if sentence is a list of sentences
@@ -230,12 +230,16 @@ class VardropLSTMStack(nn.Module):
 
         if batch:
             current_input = torch.nn.utils.rnn.pad_sequence(X, batch_first=True)
+            lengths = [len(s) for s in X]
         else:
             current_input = X.unsqueeze(0)
 
 
         for lstm, n in zip(self.lstm_list, range(depth)):
-            output, _ = lstm(current_input)
+            if self.gated_residual and n != 0:
+                output, _ = lstm(current_input, residual_x = current_input)
+            else:
+                output, _ = lstm(current_input)
 
             if n != 0 and self.residual:
                 current_input = current_input + output

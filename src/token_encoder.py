@@ -24,7 +24,7 @@ import torch.nn as nn
 import character_encoders as enc
 from dropout import Dropout
 
-from lstmstack import LSTMStack
+from lstmstack import LSTMStack, VardropLSTMStack
 
 class TokenEncoder(nn.Module):
     """Original implementation of word embedding, character embedding and 
@@ -191,7 +191,8 @@ class StackedSupertagTokenEncoder(nn.Module):
     """
     def __init__(self, depth, dim_char_emb, dim_char_lstm, dim_word_emb, dim_lstm_stack, 
                     char_voc_size, word_voc_size, words2tensors, emb_init, drop_lstm_in = 0,
-                    drop_char_emb = 0, supertag_num = None, dim_supertag = None, drop_supertag = 0):
+                    drop_char_emb = 0, supertag_num = None, dim_supertag = None, drop_supertag = 0,
+                    residual = "addition", vardrop_i = 0, vardrop_h = 0):
         """
         Initialising method for the ``StackedSupertagTokenEncoder`` module.
         Includes a call to ``initialize_parameters`` to initialise weights.
@@ -230,6 +231,7 @@ class StackedSupertagTokenEncoder(nn.Module):
             the character-aware embedding.
         drop_supertag : float, default = 0, meaning no dropout
             Dropout for ``supertag_encoder`` input.
+        TODO
         """
         super(StackedSupertagTokenEncoder, self).__init__()
 
@@ -256,7 +258,11 @@ class StackedSupertagTokenEncoder(nn.Module):
                                 words2tensors=words2tensors,
                                 dropout=drop_char_emb)
 
-        self.lstm_stack = LSTMStack(self.depth, dim_lstm_stack_in, dim_lstm_stack)
+        if vardrop_h > 0 or vardrop_i > 0 or residual == "gated":
+            self.lstm_stack = VardropLSTMStack(self.depth, dim_lstm_stack_in, 
+                                               dim_lstm_stack, vardrop_i, vardrop_h, residual)
+        else:
+            self.lstm_stack = LSTMStack(self.depth, dim_lstm_stack_in, dim_lstm_stack, residual)
 
         self.dropout = Dropout(drop_lstm_in)
 
