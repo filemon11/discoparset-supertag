@@ -34,6 +34,7 @@ import torch.nn as nn
 import CCGbank_import as ccgbank
 import CCG_helper as ccg
 import chunking as chunk
+import lcfrs
 
 import depptb
 
@@ -56,7 +57,8 @@ TASKS : MappingProxyType[str, Tuple[str, ...]] = MappingProxyType({ "ccg" : ("su
                                                                             "rightaction", "head", "arg", "sketch", 
                                                                             "argstruct", "near", "functor"),
                                                                     "depptb" : ("dep",),
-                                                                    "conll2000" : ("chunking",)})
+                                                                    "conll2000" : ("chunking",),
+                                                                    "lcfrsptb" : ("lcfrs",)})
 
 TASK2CORPUS : MappingProxyType[str, str] = MappingProxyType({task : corpus for corpus, task_list in TASKS.items() for task in task_list})
 
@@ -213,9 +215,18 @@ def import_chunking(split : Literal["test"] | Literal["train"] | Literal["dev"],
     # convert chunking features into strings to match the formatting standard
     chunking : List[List[str]] = [[str(value) for value in sentence] for sentence in chunking_temp]
 
-    chunking_sentences, chunking = shuffle_and_limit(chunking_sentences, chunking, limit=limit)
+    chunking_sentences, chunking = shuffle_and_limit(chunking_sentences, chunking, limit = limit)
 
     return chunking_sentences, chunking
+
+def import_lcfrs(lcfrs_dir : str, split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) \
+                            -> Tuple[Corpus, Corpus]:
+    """TODO"""
+    lcfrs_sentences, supertags = shuffle_and_limit(*lcfrs.import_lcfrs(split, lcfrs_dir), limit = limit)
+    
+    return lcfrs_sentences, supertags
+
+
 
 def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : Literal["test"] | Literal["train"] | Literal["dev"],
                     limit : Optional[int] = None) -> Dict[str, Tuple[Corpus, Dict[str, Corpus]]]:
@@ -260,55 +271,62 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
     # import the necessary corpora
     for corpus in goal_tasks_by_corpus.keys():
 
-        if corpus == "conll2000":
-            chunking_sentences, chunking = import_chunking(split, limit)
+        match corpus:
+            case "conll2000":
+                chunking_sentences, chunking = import_chunking(split, limit)
 
-            data_dict[corpus] = (chunking_sentences, {"chunking" : chunking})
+                data_dict[corpus] = (chunking_sentences, {"chunking" : chunking})
 
-        elif corpus == "depptb":
+            case "depptb":
             
-            dep_sentences, dep = import_dep(corpus_dirs["depptb"], split, limit)
+                dep_sentences, dep = import_dep(corpus_dirs["depptb"], split, limit)
 
-            data_dict[corpus] = (dep_sentences, {"dep" : dep})
-
-        elif corpus == "ccg":
-
-            # for CCG, four basic tasks are available through the import_ccg_basic method.
-            # The other tasks need to be constructed using the supertags provided by the
-            # import_ccg_basic method. 
-            tokens, ccg_basic_task_data = import_ccg_basic(corpus_dirs["ccg"], split, limit)
-
-            data_dict[corpus] = (tokens, {})
-
-            # only add those basic tasks are actually requested
-            for key, data in ccg_basic_task_data.items():
-                if key in goal_tasks_by_corpus[corpus]:
-                    data_dict[corpus][1][key] = data
-
-            # Additional CCG tasks
-
-            # head, arg and functor tasks are constructed using one common method
-            if any([task in ("head", "arg", "functor") for task in goal_tasks_by_corpus[corpus]]):
-                head    : Corpus      # total head
-                arg     : Corpus       # first argument and direction
-                functor : Corpus   
-                head, arg, functor = ccg.head_arg_functor(ccg_basic_task_data["supertag"])
-
-            for task in goal_tasks_by_corpus[corpus]:
+                data_dict[corpus] = (dep_sentences, {"dep" : dep})
+        
+            case "lcfrsptb":
                 
-                match task:
-                    case "head":
-                        data_dict[corpus][1]["head"] = head
-                    case "arg":
-                        data_dict[corpus][1]["arg"] = arg
-                    case "functor":
-                       data_dict[corpus][1]["functor"] = functor
-                    case "sketch":
-                        data_dict[corpus][1]["sketch"] = corpus_apply(ccg_basic_task_data["supertag"], ccg.get_sketch)
-                    case "argstruct":
-                        data_dict[corpus][1]["argstruct"] = corpus_apply(ccg_basic_task_data["supertag"], ccg.supertag_to_arg_struct)
-                    case "near":
-                        data_dict[corpus][1]["near"] = [ccg.create_near_action(sentence) for sentence in ccg_basic_task_data["supertag"]]
+                lcfrs_sentences, supertags = import_lcfrs(corpus_dirs["lcfrsptb"], split, limit)
+
+                data_dict[corpus] = (lcfrs_sentences, {"lcfrs" : supertags})
+
+            case "ccg":
+
+                # for CCG, four basic tasks are available through the import_ccg_basic method.
+                # The other tasks need to be constructed using the supertags provided by the
+                # import_ccg_basic method. 
+                tokens, ccg_basic_task_data = import_ccg_basic(corpus_dirs["ccg"], split, limit)
+
+                data_dict[corpus] = (tokens, {})
+
+                # only add those basic tasks are actually requested
+                for key, data in ccg_basic_task_data.items():
+                    if key in goal_tasks_by_corpus[corpus]:
+                        data_dict[corpus][1][key] = data
+
+                # Additional CCG tasks
+
+                # head, arg and functor tasks are constructed using one common method
+                if any([task in ("head", "arg", "functor") for task in goal_tasks_by_corpus[corpus]]):
+                    head    : Corpus      # total head
+                    arg     : Corpus       # first argument and direction
+                    functor : Corpus   
+                    head, arg, functor = ccg.head_arg_functor(ccg_basic_task_data["supertag"])
+
+                for task in goal_tasks_by_corpus[corpus]:
+
+                    match task:
+                        case "head":
+                            data_dict[corpus][1]["head"] = head
+                        case "arg":
+                            data_dict[corpus][1]["arg"] = arg
+                        case "functor":
+                           data_dict[corpus][1]["functor"] = functor
+                        case "sketch":
+                            data_dict[corpus][1]["sketch"] = corpus_apply(ccg_basic_task_data["supertag"], ccg.get_sketch)
+                        case "argstruct":
+                            data_dict[corpus][1]["argstruct"] = corpus_apply(ccg_basic_task_data["supertag"], ccg.supertag_to_arg_struct)
+                        case "near":
+                            data_dict[corpus][1]["near"] = [ccg.create_near_action(sentence) for sentence in ccg_basic_task_data["supertag"]]
 
     return data_dict
 
@@ -422,7 +440,8 @@ def features_to_tensor_features(features : Mapping[str, AnyCorpus], vocab : Mapp
 
     features_dict : Dict[str, List[torch.Tensor]] = {}
     for task, tags in features.items():
-        features_dict[task] = [torch.tensor([vocab[task][1][tag] for tag in sentence], dtype=torch.long, device=device) for sentence in tags]
+
+        features_dict[task] = [torch.tensor([vocab[task][1][tag] for tag in sentence], dtype=torch.long, device=device) for sentence in tags]   #type: ignore
 
     return features_dict
 

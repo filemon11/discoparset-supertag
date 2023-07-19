@@ -90,7 +90,12 @@ class Transducer(nn.Module):
     def __init__(self, args, depth, char_voc_size, word_voc_size, num_labels, num_tag_labels, num_task_labels, words2tensors, supertag_num = None):
         super(Transducer, self).__init__()
 
-        self.token_encoder = StackedSupertagTokenEncoder(depth, args.c, args.C, args.w, args.W, char_voc_size, word_voc_size, words2tensors, args.Q, args.K, args.I, supertag_num, args.sup, args.Y)
+        self.token_encoder = StackedSupertagTokenEncoder(depth, args.c, args.C, args.w, args.W, char_voc_size, 
+                                                         word_voc_size, words2tensors, args.Q, args.K, args.I, 
+                                                         supertag_num, args.sup, args.Y,
+                                                         residual = args.R,
+                                                         vardrop_i = args.vi,
+                                                         vardrop_h = args.vh)
 
         # Structural actions
         self.structure = Structure(args.W*8, args.D, args.H, args.A)
@@ -786,7 +791,7 @@ def main_train(args, logger, device):
     # Aux tasks
     logger.info("Auxiliary corpora extraction...")
 
-    corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb}
+    corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs}
     
     tasks = ast.literal_eval(args.T)
     task2depth = {task : n + 1 for n, level in enumerate(tasks) for task in level}
@@ -799,7 +804,7 @@ def main_train(args, logger, device):
     
     # Initialisation of DataLoaders to manage train and dev auxiliary corpus data.
     # The datasets necessary for the tasks specified in tagging_tasks_flat are automatically loaded.
-    aux_train_loader    = multi_data_loader.DataLoader(tagging_tasks_flat, corpus_dirs, "train", "train", args.S, device = device)
+    aux_train_loader    = multi_data_loader.DataLoader(tagging_tasks_flat, corpus_dirs, "train", "train", args.S, device = device, verbose = True)
     aux_dev_loader      = multi_data_loader.DataLoader(tagging_tasks_flat, corpus_dirs, "dev", "eval", args.S, vocab = aux_train_loader.vocab)
 
     # Vocab
@@ -1155,7 +1160,7 @@ def main_eval(args, logger, device):
         test_corpus = corpus_reader.read_ctbk_corpus(args.ctbk)
         test_sentences, test_raw_sentences, _, _ = prepare_corpus(test_corpus, words2i, device)
 
-        corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb}
+        corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs}
 
         if args.pipeline:
             test_ccg_corpus = depccg.supertag_distribution(test_raw_sentences, tensor_device=device)
@@ -1296,12 +1301,16 @@ if __name__ == "__main__":
 
     train_parser.add_argument("-w", type=int, default=None, help="Use word embeddings with dim=w")
     train_parser.add_argument("-W", type=int, default=400, help="Dimension of sentence bi-LSTM")
+    train_parser.add_argument("-R", default="addition", choices=["addition, gated, None"], help="Choice of residual connections.")
+    train_parser.add_argument("-vi", type=float, default=0.0, help="Variational LSTM dropout input")
+    train_parser.add_argument("-vh", type=float, default=0.0, help="Variational LSTM dropout hidden layer")
 
     train_parser.add_argument("-P", type=int, default=2, help="Depth of word transducer, min=2")
     
     train_parser.add_argument("-T", type=str, default="[['tag'],['parsing']]", help="Multi-task hierarchy; only allowed to contain tag and parsing if pipeline model is used")
     train_parser.add_argument("-ccg", type=str, default="../CCGrebank/data", help="CCGrebank directory")
     train_parser.add_argument("-depptb", type=str, default="../DepPTB/treebank.conllu", help="depPTB directory")
+    train_parser.add_argument("-lcfrs", type=str, default="../LCFRS", help="LCFRS directory")
 
     train_parser.add_argument("-sup", type=int, default=0, help="Supertag pipeline dim; if 0 then the pipeline model is not used; must be set to 0 if auxiliary tasks are used")
     train_parser.add_argument("-Y", type=int, default=0, help="Supertag pipeline drop")
