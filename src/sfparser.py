@@ -23,6 +23,7 @@ import corpus_reader
 import tree as T
 
 from token_encoder import StackedSupertagTokenEncoder
+from layernorm import LayerNormalization
 
 import multi_data_loader
 
@@ -57,7 +58,7 @@ def print_data_on_memory_size():
 
 class Structure(nn.Module):
     """Structure classifier batches """
-    def __init__(self, input_size, dropout, hidden, atn):
+    def __init__(self, input_size, dropout, hidden, atn, layernorm = False):
         super(Structure, self).__init__()
         self.input_size = input_size
         input_dim = input_size
@@ -66,10 +67,11 @@ class Structure(nn.Module):
         self.structure = nn.Sequential(
                             Dropout(dropout),
                             nn.Linear(input_dim, hidden),
+                            LayerNormalization(args.H) if layernorm else nn.Identity(),
                             nn.Tanh(),
                             nn.Linear(hidden, hidden),
                             nn.Tanh(),
-                            nn.Linear(hidden, 1, bias=False))
+                            nn.Linear(hidden, 1))
         self.softmax = nn.LogSoftmax(dim=0)
         self.atn = atn
 
@@ -95,31 +97,45 @@ class Transducer(nn.Module):
                                                          supertag_num, args.sup, args.Y,
                                                          residual = args.R,
                                                          vardrop_i = args.vi,
-                                                         vardrop_h = args.vh)
+                                                         vardrop_h = args.vh,
+                                                         layernorm = args.L)
 
         # Structural actions
-        self.structure = Structure(args.W*8, args.D, args.H, args.A)
+        self.structure = Structure(args.W*8, args.D, args.H, args.A, args.L)
 
         # Labelling actions
         self.label = nn.Sequential(
                         Dropout(args.D),
                         nn.Linear(args.W*4, args.H),
+                        LayerNormalization(args.H) if args.L else nn.Identity(),
                         nn.Tanh(),
                         nn.Linear(args.H, args.H),
                         nn.Tanh(),
-                        nn.Linear(args.H, num_labels, bias=False),
+                        nn.Linear(args.H, num_labels),
                         nn.LogSoftmax(dim=1))
 
         self.tagger = nn.Sequential(
                         Dropout(args.X),
-                        nn.Linear(args.W, num_tag_labels, bias=False),
+                        nn.Linear(args.W, args.H),
+                        *(  
+                            LayerNormalization(args.H),
+                            nn.Tanh(),
+                            nn.Linear(args.H, num_tag_labels)
+                        if args.L else
+                            nn.Identity()),
                         nn.LogSoftmax(dim=1))
 
         # AUX tagging
         self.aux_taggers = nn.ModuleDict({task : nn.Sequential(
-                                                        Dropout(args.X),
-                                                        nn.Linear(args.W, label_num, bias=False),
-                                                        nn.LogSoftmax(dim=1))
+                                                    Dropout(args.X),
+                                                    nn.Linear(args.W, args.H),
+                                                    *(  
+                                                        LayerNormalization(args.H),
+                                                        nn.Tanh(),
+                                                        nn.Linear(args.H, label_num)
+                                                    if args.L else
+                                                        nn.Identity()),
+                                                    nn.LogSoftmax(dim=1))
                                                 for task, label_num in num_task_labels.items()
                                         })
         
@@ -1301,9 +1317,10 @@ if __name__ == "__main__":
 
     train_parser.add_argument("-w", type=int, default=None, help="Use word embeddings with dim=w")
     train_parser.add_argument("-W", type=int, default=400, help="Dimension of sentence bi-LSTM")
-    train_parser.add_argument("-R", default="addition", choices=["addition, gated, None"], help="Choice of residual connections.")
+    train_parser.add_argument("-R", default="addition", choices=["addition", "gated", "None"], help="Choice of residual connections.")
     train_parser.add_argument("-vi", type=float, default=0.0, help="Variational LSTM dropout input")
     train_parser.add_argument("-vh", type=float, default=0.0, help="Variational LSTM dropout hidden layer")
+    train_parser.add_argument("-L", type=bool, default=False, help="Use layer normalisation between LSTMs and in final FF networks")
 
     train_parser.add_argument("-P", type=int, default=2, help="Depth of word transducer, min=2")
     

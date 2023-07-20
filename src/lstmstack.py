@@ -68,7 +68,7 @@ class LSTMStack(nn.Module):
     forward
         Applies the module.
     """
-    def __init__(self, depth, dim_lstm_in, dim_lstm_stack, residual = True):
+    def __init__(self, depth, dim_lstm_in, dim_lstm_stack, residual = True, layernorm = False):
         """
         Initialising method for the ``LSTMStack`` module.
         Includes a call to ``initialize_parameters`` to
@@ -94,6 +94,12 @@ class LSTMStack(nn.Module):
                                                         batch_first     = True,
                                                         bidirectional   = True) 
                                                     for n in range(depth)])
+
+        if layernorm:
+            self.layernorms = nn.ModuleList([nn.LayerNorm(dim_lstm_in if n == 0 else dim_lstm_stack)
+                                                for n in range(depth + 1)])
+        else:
+            self.layernorms = nn.ModuleList([nn.Identity() for _ in range(depth + 1)])
 
         self.residual = residual
         
@@ -156,13 +162,16 @@ class LSTMStack(nn.Module):
         if not batch:
             current_input = X.unsqueeze(0)
 
-            for lstm, n in zip(self.lstm_list, range(depth)):
-                output, _ = lstm(current_input)
+            for lstm, norm, n in zip(self.lstm_list, self.layernorms, range(depth)):
+                output, _ = lstm(norm(current_input))
 
                 if n != 0 and self.residual:
                     current_input = current_input + output
                 else: 
                     current_input = output
+
+                if n + 1 == len(self.lstm_list):
+                    current_input = self.layernorms[-1](current_input)
 
                 output_list.append(current_input.squeeze(0))
 
@@ -173,9 +182,9 @@ class LSTMStack(nn.Module):
             
             current_input = torch.nn.utils.rnn.pad_sequence(X, batch_first=True)
 
-            for lstm, n in zip(self.lstm_list, range(depth)):
+            for lstm, norm, n in zip(self.lstm_list, self.layernorms, range(depth)):
                 output, _ = lstm(torch.nn.utils.rnn.pack_padded_sequence(
-                                    current_input, lengths, batch_first=True))
+                                    norm(current_input), lengths, batch_first=True))
 
                 output, _ = torch.nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
                 
@@ -183,6 +192,10 @@ class LSTMStack(nn.Module):
                     current_input = current_input + output
                 else: 
                     current_input = output
+
+                
+                if n + 1 == len(self.lstm_list):
+                    current_input = self.layernorms[-1](current_input)
 
                 output_list.append(unpad(current_input, lengths))
 
@@ -192,7 +205,7 @@ class LSTMStack(nn.Module):
 class VardropLSTMStack(nn.Module):
     """multi-task LSTM stack
     TODO"""
-    def __init__(self, depth, dim_lstm_in, dim_lstm_stack, vardrop_i, vardrop_h, residual = "addition"):
+    def __init__(self, depth, dim_lstm_in, dim_lstm_stack, vardrop_i, vardrop_h, residual = "addition", layernorm = False):
         super(VardropLSTMStack, self).__init__()
 
         self.lstm_list = nn.ModuleList([BiLSTM( input_size      = dim_lstm_in if n == 0 else dim_lstm_stack,
@@ -201,6 +214,12 @@ class VardropLSTMStack(nn.Module):
                                                 dropout_h       = vardrop_h,
                                                 gated_residual  = True if n > 0 and residual == "gated" else False) 
                                                     for n in range(depth)])
+        
+        if layernorm:
+            self.layernorms = nn.ModuleList([nn.LayerNorm(dim_lstm_in if n == 0 else dim_lstm_stack)
+                                                for n in range(depth + 1)])
+        else:
+            self.layernorms = nn.ModuleList([nn.Identity() for _ in range(depth + 1)])
 
         self.residual       = True if residual == "addition" else False
         self.gated_residual = True if residual == "gated" else False
@@ -235,16 +254,19 @@ class VardropLSTMStack(nn.Module):
             current_input = X.unsqueeze(0)
 
 
-        for lstm, n in zip(self.lstm_list, range(depth)):
+        for lstm, norm, n in zip(self.lstm_list, self.layernorms, range(depth)):
             if self.gated_residual and n != 0:
-                output, _ = lstm(current_input, residual_x = current_input)
+                output, _ = lstm(norm(current_input), residual_x = current_input)
             else:
-                output, _ = lstm(current_input)
+                output, _ = lstm(norm(current_input))
 
             if n != 0 and self.residual:
                 current_input = current_input + output
             else: 
                 current_input = output
+
+            if n + 1 == len(self.lstm_list):
+                current_input = self.layernorms[-1](current_input)
 
             if batch:
                 output_list.append(unpad(current_input, lengths))

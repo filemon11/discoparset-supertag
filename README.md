@@ -35,6 +35,8 @@ Install depCCG: (https://github.com/masashi-y/depccg)
     git clone https://github.com/mcoavoux/multilingual_disco_data.git
     # and follow instructions in multilingual_disco_data/readme
 
+    You need to provide a copy of the DPTB (contact Kilian Evang).
+
 **CCGrebank:**
 
 Place unzipped `CCGrebank` folder into the project
