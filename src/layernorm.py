@@ -1,3 +1,28 @@
+"""
+This module contains the LayerNormalisation model
+used in: 
+
+@inproceedings{coavoux-2021-bert,
+    title = "{BERT}-Proof Syntactic Structures: Investigating Errors in Discontinuous Constituency Parsing",
+    author = "Coavoux, Maximin",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021",
+    month = aug,
+    year = "2021",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.findings-acl.288",
+    doi = "10.18653/v1/2021.findings-acl.288",
+    pages = "3259--3272",
+}
+
+The implementation can be found here: https://aclanthology.org/2021.findings-acl.288.pdf
+
+Classes
+----------
+LayerNormalization
+
+"""
+
 import torch
 import torch.nn as nn
 
@@ -20,13 +45,5 @@ class LayerNormalization(nn.Module):
         ln_out = (z - mu.expand_as(z)) / (sigma.expand_as(z) + self.eps)
         if self.affine:
             ln_out = ln_out * self.a_2.expand_as(ln_out) + self.b_2.expand_as(ln_out)
-
-        # NOTE(nikita): the t2t code does the following instead, with eps=1e-6
-        # However, I currently have no reason to believe that this difference in
-        # implementation matters.
-        # mu = torch.mean(z, keepdim=True, dim=-1)
-        # variance = torch.mean((z - mu.expand_as(z))**2, keepdim=True, dim=-1)
-        # ln_out = (z - mu.expand_as(z)) * torch.rsqrt(variance + self.eps).expand_as(z)
-        # ln_out = ln_out * self.a_2.expand_as(ln_out) + self.b_2.expand_as(ln_out)
 
         return ln_out

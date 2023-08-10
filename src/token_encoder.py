@@ -26,6 +26,8 @@ from dropout import Dropout
 
 from lstmstack import LSTMStack, VardropLSTMStack
 
+from neuralmodels import FeedForward
+
 class TokenEncoder(nn.Module):
     """Original implementation of word embedding, character embedding and 
     two-level biLSTM from https://gitlab.com/mcoavoux/discoparset
@@ -192,7 +194,8 @@ class StackedSupertagTokenEncoder(nn.Module):
     def __init__(self, depth, dim_char_emb, dim_char_lstm, dim_word_emb, dim_lstm_stack, 
                     char_voc_size, word_voc_size, words2tensors, emb_init, drop_lstm_in = 0,
                     drop_char_emb = 0, supertag_num = None, dim_supertag = None, drop_supertag = 0,
-                    residual = "addition", vardrop_i = 0, vardrop_h = 0, layernorm = False):
+                    residual_add = 1, residual_gated = 0, residual_add_gated = 0, vardrop_i = 0, 
+                    vardrop_h = 0, layernorm = False, initial_transform = False):
         """
         Initialising method for the ``StackedSupertagTokenEncoder`` module.
         Includes a call to ``initialize_parameters`` to initialise weights.
@@ -231,7 +234,24 @@ class StackedSupertagTokenEncoder(nn.Module):
             the character-aware embedding.
         drop_supertag : float, default = 0, meaning no dropout
             Dropout for ``supertag_encoder`` input.
-        TODO
+        residual_add : int, default = 1
+            Which preceding LSTM stack layer to add as a residual
+            connection to each LSTM output. 0 means no residual
+            connection, 1 means the previous layer, 2 means layer n-2
+            and so forth. Dimensions need to match.
+        residual_gated : int, default = 0
+            Which preceding LSTM stack layer to add as a gated
+            internal LSTM residual connection to each LSTM.
+            0 means no residual connection, 1 means the previous layer, 
+            2 means layer n-2 and so forth. If the dimensions do not match,
+            a linear transformation is performed.
+        vardrop_i : float, default = 0, meaning no dropout
+            Value of variational LSTM cell input dropout. 
+        vardrop_h : float, default = 0, meaning no dropout
+            Value of variational LSTM cell hidden dropout.
+        layernorm : bool, default = False
+            Whether to use layer normalization between biLSTM layers
+            and as a final operation after the last biLSTM in the stack.
         """
         super(StackedSupertagTokenEncoder, self).__init__()
 
@@ -246,9 +266,16 @@ class StackedSupertagTokenEncoder(nn.Module):
 
         self.supertag_encoder = None
         if supertag_num != None:
-            self.supertag_encoder = nn.Linear(supertag_num, dim_supertag, bias = False)
-            self.supertag_dropout = Dropout(drop_supertag)
-            dim_lstm_stack_in += dim_supertag
+            self.supertag_encoder = FeedForward(d_in        = supertag_num,
+                                                d_hid       = dim_supertag,
+                                                d_out       = dim_supertag,
+                                                drop_in     = 0,
+                                                final_bias  = True,
+                                                activation  = nn.Tanh,
+                                                layer_norm  = False,
+                                                n_hid       = 1,
+                                                drop_hid    = drop_supertag)
+            dim_lstm_stack_in += supertag_num
 
         self.char_encoder = enc.CharacterLstmLayer(
                                 emb_dim=dim_char_emb,
@@ -258,11 +285,30 @@ class StackedSupertagTokenEncoder(nn.Module):
                                 words2tensors=words2tensors,
                                 dropout=drop_char_emb)
 
-        if vardrop_h > 0 or vardrop_i > 0 or residual == "gated":
-            self.lstm_stack = VardropLSTMStack(self.depth, dim_lstm_stack_in, 
-                                               dim_lstm_stack, vardrop_i, vardrop_h, residual, layernorm)
+        # Use fast LSTM implementation if the internal structure does not need to be redefined.
+        if residual_gated > 0:        
+            self.lstm_stack = VardropLSTMStack(depth                = self.depth, 
+                                               dim_lstm_in          = dim_lstm_stack_in, 
+                                               dim_lstm_stack       = dim_lstm_stack, 
+                                               vardrop_i            = vardrop_i, 
+                                               vardrop_h            = vardrop_h, 
+                                               residual_add         = residual_add,
+                                               residual_gated       = residual_gated, 
+                                               residual_add_gated   = residual_add_gated,
+                                               layernorm            = layernorm,
+                                               initial_transform    = initial_transform
+                                               )
         else:
-            self.lstm_stack = LSTMStack(self.depth, dim_lstm_stack_in, dim_lstm_stack, residual, layernorm)
+            self.lstm_stack = LSTMStack(depth               = self.depth,
+                                        dim_lstm_in         = dim_lstm_stack_in, 
+                                        dim_lstm_stack      = dim_lstm_stack, 
+                                        vardrop_i           = vardrop_i, 
+                                        vardrop_h           = vardrop_h, 
+                                        residual            = residual_add, 
+                                        residual_add_gated  = residual_add_gated,
+                                        layernorm           = layernorm,
+                                        initial_transform   = initial_transform
+                                        )
 
         self.dropout = Dropout(drop_lstm_in)
 
@@ -345,7 +391,7 @@ class StackedSupertagTokenEncoder(nn.Module):
                 char_based_embeddings = torch.cat([char_based_embeddings, embeds], dim=1)
             
             if supertags is not None:
-                supertag_embeddings = self.supertag_encoder(self.supertag_dropout(supertags))
+                supertag_embeddings = self.supertag_encoder(supertags)
 
                 char_based_embeddings = torch.cat([char_based_embeddings, supertag_embeddings], dim=1)
 
@@ -372,7 +418,7 @@ class StackedSupertagTokenEncoder(nn.Module):
                                          for cb_es, w_e in zip(char_based_embeddings, embeds)]
 
             if supertags is not None:
-                supertag_embeddings = [self.supertag_encoder(self.supertag_dropout(sup)) for sup in supertags]
+                supertag_embeddings = [self.supertag_encoder(sup) for sup in supertags]
                 char_based_embeddings = [torch.cat([cb_es, s_e], dim=1)
                                          for cb_es, s_e in zip(char_based_embeddings, supertag_embeddings)]
             

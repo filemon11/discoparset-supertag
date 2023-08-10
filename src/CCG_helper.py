@@ -13,7 +13,7 @@ supertag_to_arg_list
 supertag_to_arg_struct
     Converts supertag to arg_struct feature.
 create_near_action
-    TODO
+    Assigns a supertag with a label depending on the relation it can have with its direct left and right neighbours.
 head_arg_functor
     Converts supertag to innermost functor,
     primary argument and functor features.
@@ -23,11 +23,8 @@ head_arg_functor
 from typing import List, Tuple
 from parsing_typing import AnyCorpus, Corpus, AnySentence, Sentence
 
-Path    = List[Tuple[str, Tuple[int, int]]]
-Paths   = List[Path]
+SupArg = Tuple[str, str, str]
 
-IndexPath   = List[List[int]]
-IndexPaths  = List[IndexPath]
 
 def get_sketch(supertag : str) -> str:
     """
@@ -69,7 +66,7 @@ def get_sketch(supertag : str) -> str:
     return sketch
 
 
-def supertag_to_functor_arg(supertag : str) -> Tuple[str, str, str]:
+def supertag_to_functor_arg(supertag : str) -> SupArg:
     """
     Retrieves the functor, argument direction
     and argument of a supertag. If no argument 
@@ -133,7 +130,7 @@ def supertag_to_functor_arg(supertag : str) -> Tuple[str, str, str]:
 
     return functor, direction, arg
 
-def supertag_to_arg_list(supertag: str, max_level : int = 50) -> List[Tuple[str, str, str]]:
+def supertag_to_arg_list(supertag: str, max_level : int = 50) -> List[SupArg]:
     """
     Converts supertag to a list of functors, 
     argument directions and arguments retrieved 
@@ -164,7 +161,7 @@ def supertag_to_arg_list(supertag: str, max_level : int = 50) -> List[Tuple[str,
     """
 
     arg         : str = " "
-    arg_list    : List[Tuple[str, str, str]] = []
+    arg_list    : List[SupArg] = []
 
     level       : int = 0
     
@@ -207,18 +204,40 @@ def supertag_to_arg_struct(supertag : str, max_level : int = 50) -> str:
     "-X+X-X+X"
     """
 
-    arg_list : List[Tuple[str, str, str]] = supertag_to_arg_list(supertag)
+    arg_list : List[SupArg] = supertag_to_arg_list(supertag, max_level)
 
     return "".join(["{}X".format(arg[1]) for arg in arg_list])
 
 
 def create_near_action(sentence : AnySentence) -> List[str]:
-    """TODO"""
-    def _near_left(arg_list_left : List[Tuple[str, str, str]], arg_list : List[Tuple[str, str, str]], supertag_left : str) -> str:
-        
-        arguments : List[Tuple[str, str, str]] = arg_list
+    """
+    Assigns each supertag in a sequence with a feature 
+    representing the if its argument slot can be filled
+    by its direct left or right neighbours. Captures arguments and
+    inner arguments as well as composition.
 
-        arguments_left : List[Tuple[str, str, str]] = arg_list_left
+    Parameters
+    ----------
+    sentence : List[str]
+        Supertag sequence.
+
+    Returns
+    -------
+    List[str]
+        One feature for each input list element.
+
+    Examples
+    -------
+    >>> create_near_action(["A/B","B","C\\A"])
+    ['n,Arg', 'n,n', 'n,n']
+    """
+
+    def _near_left(arg_list_left : List[SupArg], arg_list : List[SupArg], supertag_left : str) -> str:
+        """
+        Creates left action features.
+        """
+        arguments       : List[SupArg]  = arg_list
+        arguments_left  : List[SupArg]  = arg_list_left
 
         if not arguments:
             pass
@@ -242,11 +261,12 @@ def create_near_action(sentence : AnySentence) -> List[str]:
         
         return "n"
 
-    def _near_right(arg_list : List[Tuple[str, str, str]], arg_list_right : List[Tuple[str, str, str]], supertag_right : str) -> str:
-        
-        arguments : List[Tuple[str, str, str]] = arg_list
-
-        arguments_right : List[Tuple[str, str, str]] = arg_list_right
+    def _near_right(arg_list : List[SupArg], arg_list_right : List[SupArg], supertag_right : str) -> str:
+        """
+        Creates right action features.
+        """
+        arguments       : List[SupArg]  = arg_list
+        arguments_right : List[SupArg]  = arg_list_right
         
         if not arguments:
             pass
@@ -269,18 +289,25 @@ def create_near_action(sentence : AnySentence) -> List[str]:
         
         return "n"
 
-    def _near(arg_list_left : List[Tuple[str, str, str]], arg_list : List[Tuple[str, str, str]], arg_list_right : List[Tuple[str, str, str]], supertag_left : str, supertag_right : str) -> str:
+    def _near(arg_list_left : List[SupArg], arg_list : List[SupArg], arg_list_right : List[SupArg], supertag_left : str, supertag_right : str) -> str:
+        """
+        Creates left and right action features and concatenates 
+        them for every supertag in a sequence.
+        """
         return "{},{}".format(_near_left(arg_list_left, arg_list, supertag_left), _near_right(arg_list, arg_list_right, supertag_right))
     
-    sentence_boundary : str = ""
-    sentence_padded : List[str] = [sentence_boundary]
+    # Add sentence boundaries to treat the first and the last word the same as the inner words.
+    sentence_boundary   : str = ""
+    sentence_padded     : List[str] = [sentence_boundary]
+
     sentence_padded.extend(sentence)
     sentence_padded.append(sentence_boundary)
 
-    arg_lists : List[List[Tuple[str, str, str]]] = [supertag_to_arg_list(supertag) for supertag in sentence_padded]
+    arg_lists : List[List[SupArg]] = [supertag_to_arg_list(supertag) for supertag in sentence_padded]
 
     near_action : List[str] = []
 
+    # for every word in every sentence including its antecedent and its successor, create features
     for arg_list_left, arg_list, arg_list_right, supertag_left, supertag_right in zip(arg_lists, arg_lists[1:], arg_lists[2:], sentence_padded, sentence_padded[2:]):
         near_action.append(_near(arg_list_left, arg_list, arg_list_right, supertag_left, supertag_right))
     

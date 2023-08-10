@@ -24,6 +24,7 @@ import tree as T
 
 from token_encoder import StackedSupertagTokenEncoder
 from layernorm import LayerNormalization
+from neuralmodels import FeedForward
 
 import multi_data_loader
 
@@ -31,7 +32,8 @@ import depccg_util as depccg
 
 from utils import batch_stochastic_replacement, save_dict, load_dict, sentence_to_tensors
 
-
+L1 = 0 #1e-8
+L2 = 0 #1e-7
 def mem(device):
     #return True
     v1 = torch.cuda.memory_allocated()
@@ -58,20 +60,15 @@ def print_data_on_memory_size():
 
 class Structure(nn.Module):
     """Structure classifier batches """
-    def __init__(self, input_size, dropout, hidden, atn, layernorm = False):
+    def __init__(self, input_size, dropout, hidden, atn, layernorm, final_bias, num_hidden, activation):
         super(Structure, self).__init__()
         self.input_size = input_size
         input_dim = input_size
         if atn:
             input_dim = (input_size // 2) * 3
-        self.structure = nn.Sequential(
-                            Dropout(dropout),
-                            nn.Linear(input_dim, hidden),
-                            LayerNormalization(args.H) if layernorm else nn.Identity(),
-                            nn.Tanh(),
-                            nn.Linear(hidden, hidden),
-                            nn.Tanh(),
-                            nn.Linear(hidden, 1))
+        
+        # new:
+        self.structure = FeedForward(input_dim, hidden, 1, dropout, final_bias, activation, layernorm, num_hidden)
         self.softmax = nn.LogSoftmax(dim=0)
         self.atn = atn
 
@@ -91,50 +88,74 @@ class Transducer(nn.Module):
     """Stores sentence level bi-lstm and all other paramters of parser (struct and label classifiers)"""
     def __init__(self, args, depth, char_voc_size, word_voc_size, num_labels, num_tag_labels, num_task_labels, words2tensors, supertag_num = None):
         super(Transducer, self).__init__()
+        
+        act_fun_dict = {"tanh" : nn.Tanh, "ReLU" : nn.ReLU, "sigmoid" : nn.Sigmoid}
+        activation = act_fun_dict[args.a]
 
-        self.token_encoder = StackedSupertagTokenEncoder(depth, args.c, args.C, args.w, args.W, char_voc_size, 
-                                                         word_voc_size, words2tensors, args.Q, args.K, args.I, 
-                                                         supertag_num, args.sup, args.Y,
-                                                         residual = args.R,
-                                                         vardrop_i = args.vi,
-                                                         vardrop_h = args.vh,
-                                                         layernorm = args.L)
+        layernorm           = True if args.L == 1 else False
+        initial_transform   = True if args.it == 1 else False
+
+        self.token_encoder = StackedSupertagTokenEncoder(   depth           = depth, 
+                                                            dim_char_emb    = args.c,
+                                                            dim_char_lstm   = args.C,
+                                                            dim_word_emb    = args.w,
+                                                            dim_lstm_stack  = args.W, 
+                                                            char_voc_size   = char_voc_size, 
+                                                            word_voc_size   = word_voc_size,
+                                                            words2tensors   = words2tensors, 
+                                                            emb_init        = args.I,
+                                                            drop_lstm_in    = args.Q, 
+                                                            drop_char_emb   = args.K,
+                                                            supertag_num    = supertag_num, 
+                                                            dim_supertag    = args.sup, 
+                                                            drop_supertag   = args.Y,
+                                                            residual_add    = args.Ra,
+                                                            residual_gated  = args.Rg,
+                                                            residual_add_gated  = args.Rga,
+                                                            vardrop_i           = args.vi,
+                                                            vardrop_h           = args.vh,
+                                                            layernorm           = layernorm,
+                                                            initial_transform   = initial_transform)
 
         # Structural actions
-        self.structure = Structure(args.W*8, args.D, args.H, args.A, args.L)
-
-        # Labelling actions
+        self.structure = Structure( input_size  = args.W*8, 
+                                    dropout     = args.D,
+                                    hidden      = args.H, 
+                                    atn         = args.A, 
+                                    layernorm   = layernorm, 
+                                    final_bias  = True if args.pb == 1 else False, 
+                                    num_hidden  = args.ph, 
+                                    activation  = activation)
+ 
         self.label = nn.Sequential(
-                        Dropout(args.D),
-                        nn.Linear(args.W*4, args.H),
-                        LayerNormalization(args.H) if args.L else nn.Identity(),
-                        nn.Tanh(),
-                        nn.Linear(args.H, args.H),
-                        nn.Tanh(),
-                        nn.Linear(args.H, num_labels),
-                        nn.LogSoftmax(dim=1))
+                        FeedForward(
+                            d_in    = args.W*4, 
+                            d_hid   = args.H, 
+                            d_out   = num_labels, 
+                            drop_in = args.D, 
+                            final_bias  = True if args.pb == 1 else False, 
+                            activation  = activation,
+                            layer_norm  = layernorm,
+                            n_hid       = args.ph),
+                        nn.LogSoftmax(dim=1)
+                    )
 
+        tagger_args_dict = {"d_in"          : args.W, 
+                            "d_hid"         : args.H, 
+                            "drop_in"       : args.X,
+                            "final_bias"    : True if args.tb == 1 else False,
+                            "activation"    : activation,
+                            "layer_norm"    : layernorm,
+                            "n_hid"         : args.th}
+        
         self.tagger = nn.Sequential(
-                        Dropout(args.X),
-                        nn.Linear(args.W, args.H),
-                        *(  
-                            LayerNormalization(args.H),
-                            nn.Tanh(),
-                            nn.Linear(args.H, num_tag_labels)
-                        if args.L else
-                            nn.Identity()),
+                        FeedForward(d_out = num_tag_labels, 
+                                    **tagger_args_dict),
                         nn.LogSoftmax(dim=1))
-
         # AUX tagging
         self.aux_taggers = nn.ModuleDict({task : nn.Sequential(
-                                                    Dropout(args.X),
-                                                    nn.Linear(args.W, args.H),
-                                                    *(  
-                                                        LayerNormalization(args.H),
-                                                        nn.Tanh(),
-                                                        nn.Linear(args.H, label_num)
-                                                    if args.L else
-                                                        nn.Identity()),
+                                                    FeedForward(d_out = label_num, 
+                                                                **tagger_args_dict),
                                                     nn.LogSoftmax(dim=1))
                                                 for task, label_num in num_task_labels.items()
                                         })
@@ -503,6 +524,10 @@ def train_sentence_batch(device, model, optimizer, sentence_tensors, features, b
             for i, so in enumerate(struct_output_tensors):
                 loss += F.nll_loss(so, struct_output[i], reduction="sum")
         # --
+
+        for param in model.parameters():
+           loss += L1 * param.abs().sum() + L2 * (param**2).sum()
+
         loss.backward()
         return loss.float().detach()
     else:
@@ -546,6 +571,11 @@ def train_sentence_batch(device, model, optimizer, sentence_tensors, features, b
                 loss += F.nll_loss(so, struct_targets[i], reduction="sum")
 
         loss /= len(features)
+
+        for param in model.parameters():
+           loss += L1 * param.abs().sum() + L2 * (param**2).sum()
+           
+
         loss.backward()
         return loss.float().detach()
 
@@ -559,6 +589,9 @@ def train_generic_tagging(device, model, optimizer, sentence_tensors, tags, dept
         embeddings, _ = model(input_tensors, depth = depth)
         output = model.aux_taggers[task](embeddings)
         loss = torch.sum(model.tagger_loss(output, tags))
+        
+        for param in model.parameters():
+           loss += L1 * param.abs().sum() + L2 * (param**2).sum()
         loss.backward()
         return loss.float().detach()
     else:
@@ -570,6 +603,8 @@ def train_generic_tagging(device, model, optimizer, sentence_tensors, tags, dept
         output = model.aux_taggers[task](batch_input)
         loss = torch.sum(model.tagger_loss(output, batch_tags))
         loss /= len(tags)
+        for param in model.parameters():
+           loss += L1 * param.abs().sum() + L2 * (param**2).sum()
         loss.backward()
         return loss.float().detach()
     
@@ -581,6 +616,8 @@ def train_sentence_tagging(device, model, optimizer, sentence_tensors, tags, dep
         embeddings, _ = model(input_tensors, depth = depth, supertags = supertags)
         output = model.tagger(embeddings)
         loss = torch.sum(model.tagger_loss(output, tags))
+        for param in model.parameters():
+           loss += L1 * param.abs().sum() + L2 * (param**2).sum()
         loss.backward()
         return loss.float().detach()
     else:
@@ -592,6 +629,8 @@ def train_sentence_tagging(device, model, optimizer, sentence_tensors, tags, dep
         output = model.tagger(batch_input)
         loss = torch.sum(model.tagger_loss(output, batch_tags))
         loss /= len(tags)
+        for param in model.parameters():
+           loss += L1 * param.abs().sum() + L2 * (param**2).sum()
         loss.backward()
         return loss.float().detach()
 
@@ -942,8 +981,8 @@ def main_train(args, logger, device):
     if args.sup > 0:
         ccg_model = depccg.load_model()
 
-        train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model)
-        dev_ccg_corpus      = depccg.supertag_distribution(dev_raw_sentences, device, ccg_model)
+        train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model, -1 if args.gpu is None else args.gpu)
+        dev_ccg_corpus      = depccg.supertag_distribution(dev_raw_sentences, device, ccg_model, -1 if args.gpu is None else args.gpu)
 
     if args.sup > 0:
         sample_train_ccg_corpus = train_ccg_corpus[:len(dev_sentences)//4]
@@ -1132,6 +1171,7 @@ def main_train(args, logger, device):
                                        p, r, f, up, ur, uf, dtag, *daux, discodop_f, discodop2_f))
 
         if discodop_f > best_dev_f:
+            logger.info("Saving model")
             best_dev_f = discodop_f
             model.cpu()
             torch.save(model, "{}/model".format(args.model))
@@ -1178,8 +1218,12 @@ def main_eval(args, logger, device):
 
         corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs}
 
-        if args.pipeline:
-            test_ccg_corpus = depccg.supertag_distribution(test_raw_sentences, tensor_device=device)
+        if args.pipeline == 1:
+            depccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu)
+            start_supertag = time.time()
+            test_ccg_corpus = depccg.supertag_distribution(test_raw_sentences, tensor_device=device, model = depccg_model)
+            end_supertag = time.time()
+            p_time_supertag = end_supertag - start_supertag
 
         task2depth = {}
         with open("{}/task2depth".format(args.model), "r") as f:
@@ -1200,7 +1244,7 @@ def main_eval(args, logger, device):
         sent_tensors = [sentence_to_tensors(sent, words2i, device) for sent in sentences]
 
         start = time.time()
-        if args.pipeline:
+        if args.pipeline == 1:
             trees = predict_corpus(device, model, i2labels, i2tags, sentence_toks, sent_tensors, batch=True, supertags = test_ccg_corpus)
         else:
             trees = predict_corpus(device, model, i2labels, i2tags, sentence_toks, sent_tensors, batch=True)
@@ -1209,6 +1253,9 @@ def main_eval(args, logger, device):
         n_sentences = len(test_sentences)
         n_tokens = sum([len(sent) for sent in test_sentences])
         p_time = end - start
+        if args.pipeline == 1:
+            p_time += p_time_supertag
+
         logger.info("parsing time: {:.2f} seconds for {} sentences ({} tokens)".format(p_time, n_sentences, n_tokens))
         logger.info("parsing time: {:.2f} sentences per second, {:.2f} tokens per second".format(n_sentences / p_time, n_tokens / p_time))
 
@@ -1317,20 +1364,27 @@ if __name__ == "__main__":
 
     train_parser.add_argument("-w", type=int, default=None, help="Use word embeddings with dim=w")
     train_parser.add_argument("-W", type=int, default=400, help="Dimension of sentence bi-LSTM")
-    train_parser.add_argument("-R", default="addition", choices=["addition", "gated", "None"], help="Choice of residual connections.")
-    train_parser.add_argument("-vi", type=float, default=0.0, help="Variational LSTM dropout input")
-    train_parser.add_argument("-vh", type=float, default=0.0, help="Variational LSTM dropout hidden layer")
-    train_parser.add_argument("-L", type=bool, default=False, help="Use layer normalisation between LSTMs and in final FF networks")
+    train_parser.add_argument("-a", default="tanh", choices=["tanh","ReLu","sigmoid"], help="Choice of activatio functions for hidden layers.")
+    train_parser.add_argument("-Ra", default=1, type=int, help="Layer to use element-wise addition residual connection from. 0 is none, 1 is the previous layer, 2 is the second previous, ...")
+    train_parser.add_argument("-Rg", default=0, type=int, help="Layer to use gated residual connection from. 0 is none, 1 is the previous layer, 2 is the second previous, ...")
+    train_parser.add_argument("-Rga", default=0, type=int, help="Layer to use gated residual connection at output from. 0 is none, 1 is the previous layer, 2 is the second previous, ...")
+    train_parser.add_argument("-vi", type=float, default=0, help="Variational LSTM dropout input")
+    train_parser.add_argument("-vh", type=float, default=0, help="Variational LSTM dropout hidden layer")
+    train_parser.add_argument("-it", type=int, default=0, choices=[0,1], help="Transform LSTM stack input dimension into hidden dimension to enable residual connection from input.")
+    train_parser.add_argument("-L", type=int, default=0, choices=[0,1], help="Use layer normalisation between LSTMs and in final FF networks")
+    train_parser.add_argument("-ph", type=int, default=2, help="Number of parser (label, struct) feed forward hidden layers")
+    train_parser.add_argument("-th", type=int, default=2, help="Number of tagger feed forward hidden layers")
+    train_parser.add_argument("-pb", type=int, default=0, choices=[0,1], help="Use of bias in parser (label, struct) feed forward last linear transformation")
+    train_parser.add_argument("-tb", type=int, default=0, choices=[0,1], help="Use of bias in tagger feed forward last linear transformation")
 
-    train_parser.add_argument("-P", type=int, default=2, help="Depth of word transducer, min=2")
     
     train_parser.add_argument("-T", type=str, default="[['tag'],['parsing']]", help="Multi-task hierarchy; only allowed to contain tag and parsing if pipeline model is used")
     train_parser.add_argument("-ccg", type=str, default="../CCGrebank/data", help="CCGrebank directory")
     train_parser.add_argument("-depptb", type=str, default="../DepPTB/treebank.conllu", help="depPTB directory")
     train_parser.add_argument("-lcfrs", type=str, default="../LCFRS", help="LCFRS directory")
 
-    train_parser.add_argument("-sup", type=int, default=0, help="Supertag pipeline dim; if 0 then the pipeline model is not used; must be set to 0 if auxiliary tasks are used")
-    train_parser.add_argument("-Y", type=int, default=0, help="Supertag pipeline drop")
+    train_parser.add_argument("-sup", type=int, default=0, help="Supertag pipeline hidden dimension; if 0 then the pipeline model is not used; must be set to 0 if auxiliary tasks are used")
+    train_parser.add_argument("-Y", type=float, default=0, help="Supertag pipeline drop")
 
     train_parser.add_argument("--dyno", type=float, default=None, help="Use the dynamic oracle")
 
@@ -1347,8 +1401,9 @@ if __name__ == "__main__":
 
     eval_parser.add_argument("-ccg", type=str, default="../CCGrebank/data", help="CCGrebank directory")
     eval_parser.add_argument("-depptb", type=str, default="../DepPTB/treebank.conllu", help="CCGrebank directory")
+    eval_parser.add_argument("-lcfrs", type=str, default="../LCFRS", help="LCFRS directory")
 
-    eval_parser.add_argument("-pipeline", type=bool, default=False, help="Use depCCG supertagger as input feature for parser. Must be set to the same value as in model training.")
+    eval_parser.add_argument("-pipeline", type=int, default=0, choices=[0,1], help="Use depCCG supertagger as input feature for parser. Must be set to the same value as in model training. 0 is false, 1 is true.")
     eval_parser.add_argument("-ctbk", type=str, default=None, help="Corpus in ctbk format if tag and auxiliary tag eval is desired")
     eval_parser.add_argument("-split", type=str, default="test", help="Split for auxiliary eval data loading")
 
