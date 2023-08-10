@@ -18,6 +18,8 @@ import_dep
     Import depPTB corpus data.
 import_chunking
     Import data from the ConNLL-2000 chunking task.
+import_lcfrs
+    Import data from LCFRS supertag annotated corpus.
 import_data
     Import all necessary data for a given list of task names. 
 data_to_tensor
@@ -38,7 +40,6 @@ import lcfrs
 
 import depptb
 
-import tree as T
 from utils import batch_stochastic_replacement, save_dict, load_dict, sentence_to_tensors
 from helpers import corpus_apply
 
@@ -221,7 +222,27 @@ def import_chunking(split : Literal["test"] | Literal["train"] | Literal["dev"],
 
 def import_lcfrs(lcfrs_dir : str, split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) \
                             -> Tuple[Corpus, Corpus]:
-    """TODO"""
+    """
+    Imports a LCFRS supertagged dataset. The splits are pre-determined
+    by the conversion tool. See module ``lcfrs`` for more information.
+
+    Parameters
+    ----------
+    split : Literal["test"] | Literal["train"] | Literal["dev"]
+        The split of the dataset to return.
+    limit : int | None, default = None, meaning no limit
+        Number of sentences to sample.
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        The tokens.
+    features : List[List[str]]
+        Supertags.
+    """
+    lcfrs_sentences : Corpus
+    supertags       : Corpus
+
     lcfrs_sentences, supertags = shuffle_and_limit(*lcfrs.import_lcfrs(split, lcfrs_dir), limit = limit)
     
     return lcfrs_sentences, supertags
