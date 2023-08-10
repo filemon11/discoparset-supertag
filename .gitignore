@@ -7,3 +7,8 @@ pretrained_models
 settings.json
 tests
 LCFRS
+evaluator_results
+dev_comparison.png
+disc_f1_comparison.png
+f1_comparison.png
+train_comparison.png

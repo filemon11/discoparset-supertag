@@ -15,18 +15,16 @@ Lukas Mielczarek
 
 ## Install dependencies
 
-Assuming you have a Python X environment.
+Assuming you have a Python 3.10.9 environment.
 
 Install disco-dop (https://github.com/andreasvc/disco-dop)
 https://github.com/andreasvc/disco-dop
 
 Install depCCG: (https://github.com/masashi-y/depccg)
 
-    pip install pytorch torchvision cudatoolkit=9.0 -c pytorch
-    # or (for cpu only)
-    pip install pytorch-cpu torchvision-cpu -c pytorch
+And finally:
 
-    pip intsall datasets==VERSION TODO, conllu==VERSION
+    pip install -r requirements.txt
 
 ## Generate datasets
     
@@ -51,7 +49,7 @@ launching ``sfparser.py``.
 
 ## Reproduce result with pretrained models:
 
-    TODO
+    TODO -> Only One eval script
     cd src
     # python parser.py eval <pretrained model>  <input: 1 tokenized sentence per line> <output> [--gpu <gpu_id>] [--gold gold.discbracket]
     python parser.py eval ../pretrained_models/dptb_dynamic_oracle/  ../multilingual_disco_data/data/dptb/dev.tokens ptb_dev_out --gpu 0 --gold ../multilingual_disco_data/data/dptb/dev.discbracket
@@ -61,12 +59,7 @@ launching ``sfparser.py``.
 
     # Expected results
     ...
-    precision=91.53
-    recall=91.34
-    fscore=91.44
-    disc-precision=76.09
-    disc-recall=66.37
-    disc-fscore=70.9
+    TODO
 
 ## Reproduce results by retraining models:
 
