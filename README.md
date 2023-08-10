@@ -19,7 +19,9 @@ And finally:
 
 Install disco-dop (https://github.com/andreasvc/disco-dop)
 
-Install depCCG (v2): (https://github.com/masashi-y/depccg)
+Install depCCG (2.0.3.2): (https://github.com/masashi-y/depccg)
+Note that the model (English default) currently needs to be downloaded manually
+(see https://github.com/masashi-y/depccg/issues/10)
 
 ## Generate datasets
     
