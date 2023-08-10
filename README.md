@@ -1,10 +1,6 @@
 # DisConStackFreeTest
 
 
-used dependencies incl. versions:
-
-datasets==VERSION?
-
 # Discoparset
 
 This is the code for:
@@ -17,14 +13,13 @@ Lukas Mielczarek
 
 Assuming you have a Python 3.10.9 environment.
 
-Install disco-dop (https://github.com/andreasvc/disco-dop)
-https://github.com/andreasvc/disco-dop
-
-Install depCCG: (https://github.com/masashi-y/depccg)
-
 And finally:
 
     pip install -r requirements.txt
+
+Install disco-dop (https://github.com/andreasvc/disco-dop)
+
+Install depCCG (v2): (https://github.com/masashi-y/depccg)
 
 ## Generate datasets
     
