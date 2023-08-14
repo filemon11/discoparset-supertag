@@ -92,8 +92,10 @@ class Transducer(nn.Module):
         act_fun_dict = {"tanh" : nn.Tanh, "ReLU" : nn.ReLU, "sigmoid" : nn.Sigmoid}
         activation = act_fun_dict[args.a]
 
-        layernorm           = True if args.L == 1 else False
-        initial_transform   = True if args.it == 1 else False
+        layernorm           = bool(args.L)
+        initial_transform   = bool(args.it)
+        final_bias_parser   = bool(args.pb)
+        final_bias_tagger    = bool(args.tb)
 
         self.token_encoder = StackedSupertagTokenEncoder(   depth           = depth, 
                                                             dim_char_emb    = args.c,
@@ -123,17 +125,17 @@ class Transducer(nn.Module):
                                     hidden      = args.H, 
                                     atn         = args.A, 
                                     layernorm   = layernorm, 
-                                    final_bias  = True if args.pb == 1 else False, 
+                                    final_bias  = final_bias_parser, 
                                     num_hidden  = args.ph, 
                                     activation  = activation)
  
         self.label = nn.Sequential(
                         FeedForward(
-                            d_in    = args.W*4, 
-                            d_hid   = args.H, 
-                            d_out   = num_labels, 
-                            drop_in = args.D, 
-                            final_bias  = True if args.pb == 1 else False, 
+                            d_in        = args.W*4, 
+                            d_hid       = args.H, 
+                            d_out       = num_labels, 
+                            drop_in     = args.D, 
+                            final_bias  = final_bias_parser, 
                             activation  = activation,
                             layer_norm  = layernorm,
                             n_hid       = args.ph),
@@ -143,7 +145,7 @@ class Transducer(nn.Module):
         tagger_args_dict = {"d_in"          : args.W, 
                             "d_hid"         : args.H, 
                             "drop_in"       : args.X,
-                            "final_bias"    : True if args.tb == 1 else False,
+                            "final_bias"    : final_bias_tagger,
                             "activation"    : activation,
                             "layer_norm"    : layernorm,
                             "n_hid"         : args.th}

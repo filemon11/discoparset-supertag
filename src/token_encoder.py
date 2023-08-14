@@ -238,13 +238,21 @@ class StackedSupertagTokenEncoder(nn.Module):
             Which preceding LSTM stack layer to add as a residual
             connection to each LSTM output. 0 means no residual
             connection, 1 means the previous layer, 2 means layer n-2
-            and so forth. Dimensions need to match.
+            and so forth. If ``initial_transform`` is False,
+            no residual connection is added from the input dimension.
         residual_gated : int, default = 0
             Which preceding LSTM stack layer to add as a gated
             internal LSTM residual connection to each LSTM.
             0 means no residual connection, 1 means the previous layer, 
-            2 means layer n-2 and so forth. If the dimensions do not match,
-            a linear transformation is performed.
+            2 means layer n-2 and so forth. If the input dimension does not
+            match, a linear transformation is performed at the residual
+            connection.
+        residual_add_gated : int, default = 0
+            Which preceding LSTm stack layer to add as a simple gated 
+            residual connection to each LSTM output. 0 means no residual
+            connection, 1 means the previous layer, 2 means layer n-2
+            and so forth. If ``initial_transform`` is False,
+            no residual connection is added from the input dimension.
         vardrop_i : float, default = 0, meaning no dropout
             Value of variational LSTM cell input dropout. 
         vardrop_h : float, default = 0, meaning no dropout
@@ -252,6 +260,12 @@ class StackedSupertagTokenEncoder(nn.Module):
         layernorm : bool, default = False
             Whether to use layer normalization between biLSTM layers
             and as a final operation after the last biLSTM in the stack.
+        initial_transform : bool, default = False
+            Whether to perform a simple linear transformation
+            at input level to assign all LSTMs uniform input
+            and hidden dimensionality. If residual connections
+            are used, this adds a residual connection from
+            the input level.
         """
         super(StackedSupertagTokenEncoder, self).__init__()
 
