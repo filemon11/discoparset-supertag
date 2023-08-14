@@ -512,7 +512,8 @@ class VardropLSTMStack(nn.Module):
             else:
                 X = output
 
-            if(hasattr(self, "residual_add_gated")): 
+            if(hasattr(self, "residual_add_gated")):    # permits loading saved versions of this 
+                                                        # class that did not have this attribute
                 if n > n - self.residual_add_gated >= (-1 if isinstance(self.initial, nn.Linear) else 0):        # cannot add input layer if different
                     X = self.gates[n](output, output_list[-self.residual_add_gated])
                 else:
