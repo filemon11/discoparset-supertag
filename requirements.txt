@@ -2,4 +2,3 @@ conllu==4.4.2
 nvidia-cudnn-cu11==8.5.0.96
 torch==1.12.1
 datasets==2.8.0
-numpy==1.23.5
