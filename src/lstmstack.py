@@ -20,10 +20,14 @@ unpad
 
 import torch
 import torch.nn as nn
-from vardroplstm import IntegratedBiLSTMModel
+from lstm_collection import IntegratedBiLSTMModel, FastLSTM, FastVariationalDropout
 
-import better_lstm as bl
+from collections import namedtuple
 
+# for support of old versions
+class bl:
+    LSTM = FastLSTM
+    VariationalDropout = FastVariationalDropout
 
 def unpad(tensor, lengths):
     """
@@ -141,7 +145,7 @@ class LSTMStack(nn.Module):
         else:
             self.initial = nn.Identity()
 
-        self.lstm_list = nn.ModuleList([bl.LSTM(input_size      = dim_lstm_in if n == 0 else dim_lstm_stack,
+        self.lstm_list = nn.ModuleList([FastLSTM(input_size      = dim_lstm_in if n == 0 else dim_lstm_stack,
                                                 hidden_size     = dim_lstm_stack // 2,
                                                 num_layers      = 1,
                                                 batch_first     = True,
