@@ -563,6 +563,17 @@ class GatedResidual(nn.Module):
 
     """
     def __init__(self, dim_in, bias_init = 0.1):
+        """
+        Initialising method for the ``GatedResidual`` module.
+    
+        Parameters
+        ----------
+        dim_in : int
+            Input dimension for both current
+            and residual input.
+        bias_init : float, default = 0.1
+            Value for bias tensor initialisation.
+        """
         super(GatedResidual, self).__init__()
 
         self.linear = nn.Linear(2 * dim_in, dim_in, bias = True)
