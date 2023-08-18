@@ -22,9 +22,14 @@ import torch
 from typing import Sequence, List
 
 AnySentence = Sequence[str]
+"""Sequence[str]"""
 Sentence    = List[str]
+"""List[str]"""
 
 AnyCorpus   = Sequence[AnySentence]
+"""Sequence[AnySentence]"""
 Corpus      = List[Sentence]
+"""List[Sentence]"""
 
 Device      = int | torch.device
+"""int | torch.device"""

@@ -44,6 +44,7 @@ from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 import torch
 
 Device = torch.device | int
+"""torch.device | int"""
 
 CCG_CATS = 425
 "Total number of CCG lexical category assignments depCCG uses."

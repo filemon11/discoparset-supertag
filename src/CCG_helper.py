@@ -24,6 +24,7 @@ from typing import List, Tuple
 from parsing_typing import AnyCorpus, Corpus, AnySentence, Sentence
 
 SupArg = Tuple[str, str, str]
+"""Tuple[str, str, str]"""
 
 
 def get_sketch(supertag : str) -> str:
