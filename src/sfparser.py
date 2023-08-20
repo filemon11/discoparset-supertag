@@ -981,10 +981,10 @@ def main_train(args, logger, device):
     # Supertag the train and dev corpus pre-training to use supertags
     # as input features.
     if args.sup > 0:
-        ccg_model = depccg.load_model()
+        ccg_model = depccg.load_model( -1 if args.gpu is None else args.gpu, args.sM)
 
-        train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model, -1 if args.gpu is None else args.gpu)
-        dev_ccg_corpus      = depccg.supertag_distribution(dev_raw_sentences, device, ccg_model, -1 if args.gpu is None else args.gpu)
+        train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model)
+        dev_ccg_corpus      = depccg.supertag_distribution(dev_raw_sentences, device, ccg_model)
 
     if args.sup > 0:
         sample_train_ccg_corpus = train_ccg_corpus[:len(dev_sentences)//4]
@@ -1221,9 +1221,9 @@ def main_eval(args, logger, device):
         corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs}
 
         if args.pipeline == 1:
-            depccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu)
+            depccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu, args.sM)
             start_supertag = time.time()
-            test_ccg_corpus = depccg.supertag_distribution(test_raw_sentences, tensor_device=device, model = depccg_model)
+            test_ccg_corpus = depccg.supertag_distribution(test_raw_sentences, tensor_device = device, model = depccg_model)
             end_supertag = time.time()
             p_time_supertag = end_supertag - start_supertag
 
@@ -1387,6 +1387,7 @@ if __name__ == "__main__":
 
     train_parser.add_argument("-sup", type=int, default=0, help="Supertag pipeline hidden dimension; if 0 then the pipeline model is not used; must be set to 0 if auxiliary tasks are used")
     train_parser.add_argument("-Y", type=float, default=0, help="Supertag pipeline drop")
+    train_parser.add_argument("-sM", type=str, default=None, choices=[None, "elmo", "rebank", "elmo_rebank"], help="DepCCG model to use for supertagging.")    
 
     train_parser.add_argument("--dyno", type=float, default=None, help="Use the dynamic oracle")
 
@@ -1406,6 +1407,7 @@ if __name__ == "__main__":
     eval_parser.add_argument("-lcfrs", type=str, default="../LCFRS", help="LCFRS directory")
 
     eval_parser.add_argument("-pipeline", type=int, default=0, choices=[0,1], help="Use depCCG supertagger as input feature for parser. Must be set to the same value as in model training. 0 is false, 1 is true.")
+    eval_parser.add_argument("-sM", type=str, default=None, choices=[None, "elmo", "rebank", "elmo_rebank"], help="DepCCG model to use for supertagging.")    
     eval_parser.add_argument("-ctbk", type=str, default=None, help="Corpus in ctbk format if tag and auxiliary tag eval is desired")
     eval_parser.add_argument("-split", type=str, default="test", help="Split for auxiliary eval data loading")
 

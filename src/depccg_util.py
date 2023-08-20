@@ -38,7 +38,7 @@ from depccg.instance_models import load_model as depccg_load_model
 from depccg.types import ScoringResult
 from depccg.chainer import lstm_parser_bi_fast
 
-from typing import List, Optional
+from typing import List, Optional, Union, Literal
 from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
 import torch
@@ -46,19 +46,16 @@ import torch
 Device = torch.device | int
 """torch.device | int"""
 
+Variants = Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
+"""Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]"""
+
 CCG_CATS = 425
 "Total number of CCG lexical category assignments depCCG uses."
 
-def load_model(device : int = -1) -> lstm_parser_bi_fast.FastBiaffineLSTMParser:
+def load_model(device : int = -1, variant : Variants = None) -> lstm_parser_bi_fast.FastBiaffineLSTMParser:
     """
     Loads depCCG basic english model for efficient
-    supertagging. Due to unresolved bugs
-    (version incompatibility?), the model
-    runs on the CPU at default. Change to
-    0 (or larger depending on your number of
-    GPUs) when calling the method if it works 
-    for you.
-
+    supertagging.
     Parameters
     ----------
     device : int, default = -1
@@ -66,15 +63,18 @@ def load_model(device : int = -1) -> lstm_parser_bi_fast.FastBiaffineLSTMParser:
         Larger integers denote GPUs of your
         system. Does not accept torch.device
         objects.
+    variant : Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
+        Variant of depccg model. None is the
+        standard model.
     
     Returns
     -------
     lstm_parser_bi_fast.FastBiaffineLSTMParser
     """
-    return depccg_load_model(None, device = device)[0]
+    return depccg_load_model(None, device = device, variant = variant)[0]
 
-def supertag(corpus : AnyCorpus, model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, device : int = -1) \
-                                                                                                                -> Corpus:
+def supertag(corpus : AnyCorpus, model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, 
+            device : int = -1, variant : Variants = None) -> Corpus:
     """
     Supertags a corpus using the
     1-best predictin of a depCCG
@@ -92,6 +92,10 @@ def supertag(corpus : AnyCorpus, model : Optional[lstm_parser_bi_fast.FastBiaffi
     device : int, default = -1
         Device to initialize the model on if
         no model is provided.
+    variant : Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
+        Variant of depccg model to choose
+        if no model is provided. None is the
+        standard model.
 
     Returns
     -------
@@ -102,7 +106,7 @@ def supertag(corpus : AnyCorpus, model : Optional[lstm_parser_bi_fast.FastBiaffi
     """
 
     if model is None:
-        model = load_model(device)
+        model = load_model(device, variant = variant)
 
     score_result    : List[ScoringResult]
     categories      : List[str]
@@ -114,8 +118,8 @@ def supertag(corpus : AnyCorpus, model : Optional[lstm_parser_bi_fast.FastBiaffi
     return supertags
 
 def supertag_distribution(corpus : AnyCorpus, tensor_device : Device = torch.device("cpu"),
-                            model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, model_device : int = -1) \
-                                                                                                        -> List[torch.Tensor]:
+                            model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, 
+                            model_device : int = -1, variant : Variants = None) -> List[torch.Tensor]:
     """
     Computes supertag probability
     distributions for a corpus.
@@ -133,6 +137,10 @@ def supertag_distribution(corpus : AnyCorpus, tensor_device : Device = torch.dev
     model_device : int, default = -1
         Device to initialize the model on if
         no model is provided.
+    variant : Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
+        Variant of depccg model to choose
+        if no model is provided. None is the
+        standard model.
 
     Returns
     -------
@@ -150,7 +158,7 @@ def supertag_distribution(corpus : AnyCorpus, tensor_device : Device = torch.dev
     
     # load model if not provided
     if model is None:
-        model = load_model(model_device)
+        model = load_model(model_device, variant = variant)
 
     score_result : List[ScoringResult]
     
@@ -161,7 +169,8 @@ def supertag_distribution(corpus : AnyCorpus, tensor_device : Device = torch.dev
 
     return probabilities
 
-def all_supertags(model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, device : int = -1) -> List[str]:
+def all_supertags(model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, device : int = -1,
+                    variant : Variants = None) -> List[str]:
     """
     Retrieves the list of all possible
     lexical category assignments depCCG
@@ -178,7 +187,11 @@ def all_supertags(model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] =
     device : int, default = -1
         Device to initialize the model on if
         no model is provided.
-
+    variant : Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
+        Variant of depccg model to choose
+        if no model is provided. None is the
+        standard model.
+        
     Returns
     -------
     List[str]
@@ -187,7 +200,7 @@ def all_supertags(model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] =
 
     """
     if model is None:
-        model, _ = load_model(device)
+        model, _ = load_model(device, variant = variant)
 
     categories : List[str] = model.predict_doc([[]])[1]
     
