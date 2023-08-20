@@ -106,8 +106,8 @@ args="${oracle} ${dropout} ${architectural} ${pipeline} ${dimensions} ${init} ${
 
 mkdir -p ${2}
 (
-#python sfparser.py train ${2} ${dirs} ${args} --gpu ${gpu} > ${2}/log.txt 2> ${2}/err.txt &&
-#python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket ${other} --gold ${dgold} -ctbk ${dev} -split "dev" ${other_eval} --gpu 0 > ${2}/eval_dev &&
+python sfparser.py train ${2} ${dirs} ${args} --gpu ${gpu} > ${2}/log.txt 2> ${2}/err.txt &&
+python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket ${other} --gold ${dgold} -ctbk ${dev} -split "dev" ${other_eval} --gpu 0 > ${2}/eval_dev &&
 python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket ${other} --gold ${tgold} -ctbk ${test} -split "test" ${other_eval} --gpu 0 > ${2}/eval_test  ) &
 wait
 
