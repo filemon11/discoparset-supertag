@@ -918,7 +918,7 @@ def main_train(args, logger, device):
     # of a pipeline-approach. The number of supertags specifies the output
     # dimension of depCCG.
     if args.sup > 0:
-        model = Transducer(args, len(tasks), len(i2chars), len(i2words), len(labels2i), len(tags2i), aux_train_loader.num_labels, words2tensors, supertag_num = depccg.CCG_CATS)
+        model = Transducer(args, len(tasks), len(i2chars), len(i2words), len(labels2i), len(tags2i), aux_train_loader.num_labels, words2tensors, supertag_num = depccg.CCG_CATS[args.sM])
     else:
         model = Transducer(args, len(tasks), len(i2chars), len(i2words), len(labels2i), len(tags2i), aux_train_loader.num_labels, words2tensors)
     
@@ -981,7 +981,6 @@ def main_train(args, logger, device):
     # Supertag the train and dev corpus pre-training to use supertags
     # as input features.
     if args.sup > 0:
-        print(args.sM)
         ccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu, variant = args.sM)
 
         train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model)

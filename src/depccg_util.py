@@ -38,7 +38,7 @@ from depccg.instance_models import load_model as depccg_load_model
 from depccg.types import ScoringResult
 from depccg.chainer import lstm_parser_bi_fast
 
-from typing import List, Optional, Union, Literal
+from typing import List, Optional, Union, Literal, Union, Dict
 from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
 import torch
@@ -49,7 +49,11 @@ Device = torch.device | int
 Variants = Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
 """Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]"""
 
-CCG_CATS = 425
+CCG_CATS : Dict[Variants, int] = {  None : 425,
+                                    "elmo" : 425,
+                                    "rebank" : 511,
+                                    "elmo_rebank" : 511 }
+                             
 "Total number of CCG lexical category assignments depCCG uses."
 
 def load_model(device : int = -1, variant : Variants = None) -> lstm_parser_bi_fast.FastBiaffineLSTMParser:
