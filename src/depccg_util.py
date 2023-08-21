@@ -38,6 +38,8 @@ from depccg.instance_models import load_model as depccg_load_model
 from depccg.types import ScoringResult
 from depccg.chainer import lstm_parser_bi_fast
 
+from types import MappingProxyType
+
 from typing import List, Optional, Union, Literal, Union, Dict
 from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
@@ -49,10 +51,10 @@ Device = torch.device | int
 Variants = Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
 """Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]"""
 
-CCG_CATS : Dict[Variants, int] = {  None : 425,
-                                    "elmo" : 425,
-                                    "rebank" : 511,
-                                    "elmo_rebank" : 511 }
+CCG_CATS : MappingProxyType[Variants, int] = MappingProxyType({ None : 425,
+                                                                "elmo" : 425,
+                                                                "rebank" : 511,
+                                                                "elmo_rebank" : 511 })
                              
 "Total number of CCG lexical category assignments depCCG uses."
 
