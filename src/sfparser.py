@@ -981,7 +981,8 @@ def main_train(args, logger, device):
     # Supertag the train and dev corpus pre-training to use supertags
     # as input features.
     if args.sup > 0:
-        ccg_model = depccg.load_model( -1 if args.gpu is None else args.gpu, args.sM)
+        print(args.sM)
+        ccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu, variant = args.sM)
 
         train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model)
         dev_ccg_corpus      = depccg.supertag_distribution(dev_raw_sentences, device, ccg_model)
