@@ -71,7 +71,7 @@ def load_model(device : int = -1, variant : Variants = None) -> lstm_parser_bi_f
     -------
     lstm_parser_bi_fast.FastBiaffineLSTMParser
     """
-    return depccg_load_model(None, device = device, variant = variant)[0]
+    return depccg_load_model(device = device, variant = variant)[0]
 
 def supertag(corpus : AnyCorpus, model : Optional[lstm_parser_bi_fast.FastBiaffineLSTMParser] = None, 
             device : int = -1, variant : Variants = None) -> Corpus:
