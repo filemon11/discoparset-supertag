@@ -56,7 +56,7 @@ bias_final_tagger_ff=0
 architectural="-T ${lstm_stack} -Ra ${residual_addition} -Rg ${residual_gated} -a ${activation_fun} -ph ${hid_layers_parser_ff} -th ${hid_layers_tagger_ff} -pb ${bias_final_parser_ff} -tb ${bias_final_tagger_ff}"
 
 # supertagger pipeline
-d_pipeline=425
+d_pipeline=511
 drop_pipeline=0.1
 
 pipeline="-sup ${d_pipeline} -Y ${drop_pipeline}"
@@ -92,8 +92,9 @@ hyper="-i ${iterations} -l ${learning_rate} -m ${momentum} -d ${decay} -E ${eval
 
 # other (train and eval)
 cpu_threads=1
+variant="rebank"
 
-other="-t ${cpu_threads}"
+other="-t ${cpu_threads} -sM ${variant}"
 
 # other (eval)
 eval_pipeline=1
