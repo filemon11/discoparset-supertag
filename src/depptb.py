@@ -23,8 +23,8 @@ from conllu import parse
 from conllu.models import TokenList
 from io import open
 
-from typing import List, Tuple, Dict, Literal
-from parsing_typing import Sentence, Corpus
+from typing import List, Tuple, Dict, Literal, Union, Set, FrozenSet
+from parsing_typing import Sentence, Corpus, Split
 
 SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train"   : (3915, 43746 + 1),
                                                                     "dev"     : (43747, 45446 + 1),
@@ -34,63 +34,29 @@ Standard splits of the Penn Treebank by sentence number.
 Section 2-22 train, 22-23 dev, 24 test.
 """
 
-def sentence_parse(sentence : TokenList, max_diff_in : int = 5, max_diff_out : int = 2) \
-                                                            -> Tuple[Sentence, Sentence]:
+def sentence_parse_deprel(sentence : TokenList, max_diff_in : int = 5) -> Sentence:
     """
-    Converts a sentence and a dependency structure
+    Converts a dependency structure
     provided as a ``conllu.models.TokenList`` into
-    a list of tokens and a list of dependency features.
-    A feature consists of the dependency relation type of 
-    the incoming arc as well as the relative position 
-    of the maximum left-side outgoing arc and the minimum 
-    right-side outgoing arc.
+    a list of dependency labels.
+    A feature consists of the label of the incoming arc
+    and the position of the head of the incoming arc
+    relative to the current position.
 
     Parameters
     ----------
     sentence : TokenList
         Input dependency graph.
     max_diff_in : int, default = 5
-        Currently obsolete.
-    max_diff_out : int, default = 2
-        Maximum absolute relative output distance. 
-        Larger distances are capped at this value.
-        The default 2 maintains a small number of 
-        tags while still capturing the notion of
-        adjacent or long-range relationships.
 
     Returns
     -------
-    tokens : List[str]
-        The retrieved tokens.
     features : List[str]
         The retrieved dependency features.
     """
-    tokens  : Sentence = []
-    pos     : Sentence = []
-
     in_dep      : Sentence = []
-    in_deptype  : Sentence = []
 
-    out_dep         : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
-    out_deptypes    : List[List[str]] = [[] for _ in range(len(sentence))]
-
-    total_dep   : List[Tuple[List[int], List[int]]] = [([],[]) for _ in range(len(sentence))]
-
-    # TODO: Explain what is happening here
     for token in sentence:
-        tokens.append(token['form'])
-        pos.append(token["upos"])
-        
-        diff : int = token['id']-token["head"]
-        if diff > max_diff_out:
-            diff = max_diff_out
-        elif diff < -max_diff_out:
-            diff = -max_diff_out
-
-        if token["head"] > 0:
-            out_dep[token["head"] - 1][0 if diff < 0 else 1].append(diff)
-            total_dep[token["head"] -1][0 if diff < 0 else 1].append(token['id'] -1)
-            out_deptypes[token["head"] -1].append(str(token["deprel"]).split(":")[0])
 
         in_diff : int = token["head"] - token["id"]
         if in_diff > max_diff_in:
@@ -98,13 +64,64 @@ def sentence_parse(sentence : TokenList, max_diff_in : int = 5, max_diff_out : i
         elif in_diff < -max_diff_in:
             in_diff = -max_diff_in
 
-        in_dep.append("" if token["deprel"] == "punct" and False else token["deprel"].split(":")[0] + "/" + str(in_diff))
-        in_deptype.append(token["deprel"].split(":")[0])
+        in_dep.append(token["deprel"].split(":")[0] + "_" + str(in_diff))
 
-    return tokens, [f"{i}_{str(max(set(o[0]))) if len(o[0]) > 0 else '0'}_{str(min(set(o[1]))) if len(o[1]) > 0 else '0'}" for i, o in zip(in_deptype, out_dep)]
+    return in_dep
 
-def corpus_parse(filename : str, split : Literal["test"] | Literal["train"] | Literal["dev"], 
-                 splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]] = SPLITS) -> Tuple[Corpus, Corpus]:
+def sentence_parse_deprelPOS(sentence : TokenList, max_diff_in : int = 3) -> Sentence:
+    """
+    Converts a dependency structure
+    provided as a ``conllu.models.TokenList`` into
+    a list of tokens and a list of dependency features.
+    A feature consists of the label of 
+    the incoming arc as well as the POS tag p of the arcs
+    head and the relative position relative to the current
+    word only considering the words with POS tag p.
+
+    Parameters
+    ----------
+    sentence : TokenList
+        Input dependency graph.
+    max_diff_in : int, default = 3
+
+    Returns
+    -------
+    features : List[str]
+        The retrieved dependency features.
+    """
+
+    in_dep      : Sentence = []
+
+    #print(sentence)
+    for token in sentence:
+        
+        if token["head"] == 0:
+            in_dep.append(f"root_-1_{token['deprel']}")
+
+        else:
+            POS_count : int = 0
+            diff : int = token["head"] - token['id']
+
+            head_pos : str = sentence[token["head"] - 1]["upos"]
+            while diff != 0:
+                #print(diff, token['id'], token['head'])
+                if sentence[token['id'] + diff - 1]["upos"] == head_pos:
+                    POS_count += 1 if diff > 0 else -1
+                diff += 1 if diff < 0 else -1    # reduce by one or add 1 if negative
+
+            if POS_count > max_diff_in:
+                POS_count = max_diff_in
+            elif POS_count < -max_diff_in:
+                POS_count = -max_diff_in
+
+            in_dep.append(f"{head_pos}_{POS_count}_{token['deprel'].split(':')[0]}")
+
+    return in_dep
+
+def corpus_parse(filename : str, split : Split, 
+                 splits_dict : Union[MappingProxyType[str, Tuple[int, int]], Dict[str, Tuple[int, int]]] = SPLITS,
+                 encoding : FrozenSet[Literal["deprel", "deprelPos"]] = frozenset({"deprel"})) \
+                                        -> Tuple[Corpus, Dict[str, Corpus]]:
     """
     Retrieves tokens and lexicalised dependency features
     of a split of a dependency annotated corpus.
@@ -119,17 +136,20 @@ def corpus_parse(filename : str, split : Literal["test"] | Literal["train"] | Li
         path to depPTB .conll file (not split)
     split : Literal["test"] | Literal["train"] | Literal["dev"]
         The split of the dataset to return.
-    splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]]
+    splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]], default = depptb.SPLITS
         Mapping from split name to corresponding
         sentence number slice in the corpus.
         Standard splits are set as default.
-
+    encoding : Literal["deprel"] | Literal["deprelPos"], default = {"deprel"}
+        Type of encoding of dependency tree.
+        cf. https://aclanthology.org/N19-1077.pdf
+    
     Returns
     -------
     tokens : List[List[str]]
         The retrieved tokens.
-    features : List[List[str]]
-        The retrieved dependency features.
+    features : Dict[Union[Literal["deprel"], Literal["deprelPOS"]], Corpus]
+        Dictionary of requested tasks.
 
     See Also
     -------
@@ -139,15 +159,28 @@ def corpus_parse(filename : str, split : Literal["test"] | Literal["train"] | Li
     data_file = open(filename, "r", encoding="utf-8").read()
     parselist = parse(data_file)[slice(*splits_dict[split])]
     tokens      : Corpus = []
-    features    : Corpus = []
-
+    features    : Dict[str, Corpus] = {}
+    
+    # retrieve tokens
     for sentence in parselist:
-        sen_tokens      : Sentence
-        sen_features    : Sentence
+        sentence_tokens : Sentence = []
+        for token in sentence:
+            sentence_tokens.append(token['form'])
+        tokens.append(sentence_tokens)
 
-        sen_tokens, sen_features = sentence_parse(sentence)
+    # construct tasks
+    if "deprel" in encoding:
+        deprel_features : Corpus = []
+        for sentence in parselist:
+            deprel_features.append(sentence_parse_deprel(sentence))
 
-        tokens.append(sen_tokens)
-        features.append(sen_features)
+        features["deprel"] = deprel_features
+
+    if "deprelPOS" in encoding:
+        deprelPOS_features : Corpus = []
+        for sentence in parselist:
+            deprelPOS_features.append(sentence_parse_deprelPOS(sentence))
+            
+        features["deprelPOS"] = deprelPOS_features
 
     return tokens, features
