@@ -40,7 +40,7 @@ from depccg.chainer import lstm_parser_bi_fast
 
 from types import MappingProxyType
 
-from typing import List, Optional, Union, Union, Dict
+from typing import List, Optional, Union, Union, Dict, Mapping
 
 try:
     from typing import Literal
@@ -57,7 +57,7 @@ Device = Union[torch.device, int]
 Variants = Union[None, Literal["elmo", "rebank", "elmo_rebank"]]
 """Union[None, Literal["elmo", "rebank", "elmo_rebank"]]"""
 
-CCG_CATS : MappingProxyType[Variants, int] = MappingProxyType({ None : 425,
+CCG_CATS : Mapping[Variants, int] = MappingProxyType({ None : 425,
                                                                 "elmo" : 425,
                                                                 "rebank" : 511,
                                                                 "elmo_rebank" : 511 })

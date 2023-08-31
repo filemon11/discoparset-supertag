@@ -23,7 +23,7 @@ from conllu import parse
 from conllu.models import TokenList
 from io import open
 
-from typing import List, Tuple, Dict, Union, Set, FrozenSet
+from typing import List, Tuple, Dict, Union, Set, FrozenSet, Mapping
 
 try:
     from typing import Literal
@@ -33,7 +33,7 @@ except ImportError:
 
 from parsing_typing import Sentence, Corpus, Split
 
-SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train"   : (3915, 43746 + 1),
+SPLITS : Mapping[str, Tuple[int, int]] = MappingProxyType({"train"   : (3915, 43746 + 1),
                                                                     "dev"     : (43747, 45446 + 1),
                                                                     "test"    : (45447, 47862 + 1)})
 """
@@ -126,7 +126,7 @@ def sentence_parse_deprelPOS(sentence : TokenList, max_diff_in : int = 3) -> Sen
     return in_dep
 
 def corpus_parse(filename : str, split : Split, 
-                 splits_dict : Union[MappingProxyType[str, Tuple[int, int]], Dict[str, Tuple[int, int]]] = SPLITS,
+                 splits_dict : Union[Mapping[str, Tuple[int, int]], Dict[str, Tuple[int, int]]] = SPLITS,
                  encoding : FrozenSet[Literal["deprel", "deprelPos"]] = frozenset({"deprel"})) \
                                         -> Tuple[Corpus, Dict[str, Corpus]]:
     """
@@ -143,7 +143,7 @@ def corpus_parse(filename : str, split : Split,
         path to depPTB .conll file (not split)
     split : Literal["test"] | Literal["train"] | Literal["dev"]
         The split of the dataset to return.
-    splits_dict : MappingProxyType[str, Tuple[int, int]] | Dict[str, Tuple[int, int]], default = depptb.SPLITS
+    splits_dict : Mapping[str, Tuple[int, int]] | Dict[str, Tuple[int, int]], default = depptb.SPLITS
         Mapping from split name to corresponding
         sentence number slice in the corpus.
         Standard splits are set as default.

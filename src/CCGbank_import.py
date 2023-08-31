@@ -39,13 +39,14 @@ from collections import defaultdict
 from helpers import corpus_apply, intuple, outtuple, listify
 import os
 
-from typing import List, Tuple, Dict, Sequence, Optional, Generator, Union
+from typing import List, Tuple, Dict, Sequence, Optional, Generator, Union, Mapping
 
 from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
 from types import MappingProxyType
 
-SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train" : (200,2200), 
+
+SPLITS : Mapping[str, Tuple[int, int]] = MappingProxyType({"train" : (200,2200), 
                                                                     "dev" : (2201,2300), 
                                                                     "test" : (2301,2400)})
 """

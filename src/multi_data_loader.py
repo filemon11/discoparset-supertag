@@ -60,14 +60,14 @@ except ImportError:
 from parsing_typing import Corpus, AnyCorpus, Device, Sentence, Split
 
 # specifying the annotated corpus the available auxiliary features are based on
-TASKS : MappingProxyType[str, Tuple[str, ...]] = MappingProxyType({ "ccg" : ("supertag", "scope", "leftaction", 
+TASKS : Mapping[str, Tuple[str, ...]] = MappingProxyType({ "ccg" : ("supertag", "scope", "leftaction", 
                                                                             "rightaction", "head", "arg", "sketch", 
                                                                             "argstruct", "near", "functor"),
                                                                     "depptb" : ("deprel", "deprelPOS"),
                                                                     "conll2000" : ("chunking",),
                                                                     "lcfrsptb" : ("lcfrs",)})
 
-TASK2CORPUS : MappingProxyType[str, str] = MappingProxyType({task : corpus for corpus, task_list in TASKS.items() for task in task_list})
+TASK2CORPUS : Mapping[str, str] = MappingProxyType({task : corpus for corpus, task_list in TASKS.items() for task in task_list})
 
 V = TypeVar("V")
 Y = TypeVar("Y")
