@@ -23,7 +23,14 @@ from conllu import parse
 from conllu.models import TokenList
 from io import open
 
-from typing import List, Tuple, Dict, Literal, Union, Set, FrozenSet
+from typing import List, Tuple, Dict, Union, Set, FrozenSet
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+
 from parsing_typing import Sentence, Corpus, Split
 
 SPLITS : MappingProxyType[str, Tuple[int, int]] = MappingProxyType({"train"   : (3915, 43746 + 1),

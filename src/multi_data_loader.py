@@ -50,7 +50,13 @@ import copy
 
 from types import MappingProxyType
 
-from typing import Dict, Tuple, List, Optional, Set, Literal, TypeVar, cast, Sequence, Mapping, Union, FrozenSet
+from typing import Dict, Tuple, List, Optional, Set, TypeVar, cast, Sequence, Mapping, Union, FrozenSet
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from parsing_typing import Corpus, AnyCorpus, Device, Sentence, Split
 
 # specifying the annotated corpus the available auxiliary features are based on

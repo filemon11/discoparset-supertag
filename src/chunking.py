@@ -26,7 +26,14 @@ import_chunking_data
 
 from datasets import load_dataset, Dataset, DatasetDict
 
-from typing import List, Tuple, Literal, cast
+from typing import List, Tuple, cast
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+
 from parsing_typing import Corpus, Split
 
 

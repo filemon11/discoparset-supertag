@@ -40,7 +40,13 @@ from depccg.chainer import lstm_parser_bi_fast
 
 from types import MappingProxyType
 
-from typing import List, Optional, Union, Literal, Union, Dict
+from typing import List, Optional, Union, Union, Dict
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
 import torch

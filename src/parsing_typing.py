@@ -19,7 +19,12 @@ Device
 """
 
 import torch
-from typing import Sequence, List, Literal, Union
+from typing import Sequence, List, Union
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 AnySentence = Sequence[str]
 """Sequence[str]"""

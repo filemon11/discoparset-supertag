@@ -32,7 +32,14 @@ import_lcfrs
 
 import os.path
 
-from typing import Literal, List, Tuple
+from typing import List, Tuple
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+
 from parsing_typing import Corpus, Sentence, Split
 
 
