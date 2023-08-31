@@ -20,14 +20,10 @@ unpad
 
 import torch
 import torch.nn as nn
-from lstm_collection import IntegratedBiLSTMModel, FastLSTM, FastVariationalDropout
+from lstm_collection import IntegratedBiLSTMModel, FastLSTM
 
 from collections import namedtuple
 
-# for support of old versions
-class bl:
-    LSTM = FastLSTM
-    VariationalDropout = FastVariationalDropout
 
 def unpad(tensor, lengths):
     """
@@ -236,16 +232,16 @@ class LSTMStack(nn.Module):
             for lstm, norm, n in zip(self.lstm_list, self.layernorms, range(depth)):
                 output, _ = lstm(norm(X))
 
-                if n > n - self.residual >= -(-1 if (hasattr(self, "same_initial")) and isinstance(self.initial, nn.Linear) else 0):
-                    X = output + output_list[-self.residual]
-                else: 
-                    X = output
-                
                 if(hasattr(self, "residual_add_gated")): 
                     if n > n - self.residual_add_gated >= (-1 if isinstance(self.initial, nn.Linear) else 0):
                         X = self.gates[n](output, output_list[-self.residual_add_gated])
                     else: 
                         X = output
+                else:
+                    X = output
+
+                if n > n - self.residual >= (-1 if (hasattr(self, "same_initial")) and isinstance(self.initial, nn.Linear) else 0):
+                    X = X + output_list[-self.residual]
 
                 output_list.append(X)
 
@@ -271,16 +267,16 @@ class LSTMStack(nn.Module):
 
                 output, _ = torch.nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
                 
-                if n > n - self.residual >= (-1 if (hasattr(self, "same_initial")) and isinstance(self.initial, nn.Linear) else 0):
-                    X = output + output_list[-self.residual]
-                else: 
-                    X = output
-
                 if(hasattr(self, "residual_add_gated")): 
                     if n > n - self.residual_add_gated >= (-1 if isinstance(self.initial, nn.Linear) else 0):
                         X = self.gates[n](output, output_list[-self.residual_add_gated])
                     else: 
                         X = output
+                else:
+                    X = output
+
+                if n > n - self.residual >= (-1 if (hasattr(self, "same_initial")) and isinstance(self.initial, nn.Linear) else 0):
+                    X = X + output_list[-self.residual]
 
                 output_list.append(X)
             
@@ -403,7 +399,7 @@ class VardropLSTMStack(nn.Module):
             self.initial = nn.Identity()
 
         if residual_gated == 0:
-            self.lstm_list = nn.ModuleList([bl.LSTM(
+            self.lstm_list = nn.ModuleList([FastLSTM(
                                                 input_size      = dim_lstm_in if n == 0 else dim_lstm_stack,
                                                 hidden_size     = dim_lstm_stack //2,
                                                 num_layers      = 1,
@@ -511,17 +507,17 @@ class VardropLSTMStack(nn.Module):
             else:
                 output, _ = lstm(norm(X))
 
-            if n > n - self.residual_add >= (-1 if (hasattr(self, "initial")) and isinstance(self.initial, nn.Linear) else 0):        # cannot add input layer if different
-                X = output + output_list[-self.residual_add]
-            else:
-                X = output
-
             if(hasattr(self, "residual_add_gated")):    # permits loading saved versions of this 
                                                         # class that did not have this attribute
                 if n > n - self.residual_add_gated >= (-1 if isinstance(self.initial, nn.Linear) else 0):        # cannot add input layer if different
                     X = self.gates[n](output, output_list[-self.residual_add_gated])
                 else:
                     X = output
+            else:
+                X = output
+
+            if n > n - self.residual_add >= (-1 if (hasattr(self, "initial")) and isinstance(self.initial, nn.Linear) else 0):        # cannot add input layer if different
+                X = X + output_list[-self.residual_add]
 
             output_list.append(X)
 

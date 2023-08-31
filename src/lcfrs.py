@@ -33,10 +33,10 @@ import_lcfrs
 import os.path
 
 from typing import Literal, List, Tuple
-from parsing_typing import Corpus, Sentence
+from parsing_typing import Corpus, Sentence, Split
 
 
-def import_lcfrs(split : Literal["train"] | Literal["dev"] | Literal["test"], path : str) -> Tuple[Corpus, Corpus]:
+def import_lcfrs(split : Split, path : str) -> Tuple[Corpus, Corpus]:
     """
     Imports a corpus annotated with LCFRS supertags using the LCFRS
     supertagger. The train, dev and test splits should already be in separate

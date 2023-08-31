@@ -50,14 +50,14 @@ import copy
 
 from types import MappingProxyType
 
-from typing import Dict, Tuple, List, Optional, Set, Literal, TypeVar, cast, Sequence, Mapping
-from parsing_typing import Corpus, AnyCorpus, Device, Sentence
+from typing import Dict, Tuple, List, Optional, Set, Literal, TypeVar, cast, Sequence, Mapping, Union, FrozenSet
+from parsing_typing import Corpus, AnyCorpus, Device, Sentence, Split
 
 # specifying the annotated corpus the available auxiliary features are based on
 TASKS : MappingProxyType[str, Tuple[str, ...]] = MappingProxyType({ "ccg" : ("supertag", "scope", "leftaction", 
                                                                             "rightaction", "head", "arg", "sketch", 
                                                                             "argstruct", "near", "functor"),
-                                                                    "depptb" : ("dep",),
+                                                                    "depptb" : ("deprel", "deprelPOS"),
                                                                     "conll2000" : ("chunking",),
                                                                     "lcfrsptb" : ("lcfrs",)})
 
@@ -102,7 +102,7 @@ def shuffle_and_limit(data1 : Sequence[V], *data : Sequence[V], limit : Optional
     
     return tuple(data_return)
 
-def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] | Literal["dev"], 
+def import_ccg_basic(ccg_dir : str, split : Split, 
                             limit : Optional[int] = None) -> \
                                 Tuple[Corpus, Dict[str, Corpus]]:
     """
@@ -151,8 +151,9 @@ def import_ccg_basic(ccg_dir : str, split : Literal["test"] | Literal["train"] |
 
     return tokens, data
 
-def import_dep(dep_dir : str, split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) \
-                    -> Tuple[Corpus, Corpus]:
+def import_dep(dep_dir : str, split : Split, limit : Optional[int] = None,
+                encoding : frozenset[Union[Literal["deprel"], Literal["deprelPos"]]] = frozenset(("deprel",))) \
+                    -> Tuple[Corpus, Dict[str, Corpus]]:
     """
     Imports dependency information from the
     depPTB (dependency annotated Penn Treebank) corpus
@@ -167,23 +168,34 @@ def import_dep(dep_dir : str, split : Literal["test"] | Literal["train"] | Liter
         The split of the dataset to return.
     limit : int | None, default = None, meaning no limit
         Number of sentences to sample.
+    encoding : Set[Union[Literal["deprel"], Literal["deprelPOS"]]], default = {"deprel"}
 
     Returns
     -------
     tokens : List[List[str]]
         The tokens.
-    features : List[List[str]]
+    features : Dict[str, List[List[str]]]
         Dependency features.
     """
 
-    dep_sentences   : Corpus
-    dep             : Corpus
+    tokens  : Corpus
+    tasks   : Dict[str, Corpus]
 
-    dep_sentences, dep = shuffle_and_limit(*depptb.corpus_parse(dep_dir, split), limit=limit)
+    tokens, tasks = depptb.corpus_parse(dep_dir, split, encoding = encoding)
 
-    return dep_sentences, dep
+    task_names : List[str] = list(tasks.keys())
 
-def import_chunking(split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) \
+    shuffled : Tuple[Corpus, ...] = shuffle_and_limit(tokens, *tasks.values(), limit = limit)
+    
+    tokens = shuffled[0]
+    
+    tasks = {}
+    for name, task in zip(task_names, shuffled[1:]):
+        tasks[name] = task
+
+    return tokens, tasks
+
+def import_chunking(split : Split, limit : Optional[int] = None) \
                             -> Tuple[Corpus, Corpus]:
     """
     Imports the conll2000 chunking dataset with the help of the
@@ -220,7 +232,7 @@ def import_chunking(split : Literal["test"] | Literal["train"] | Literal["dev"],
 
     return chunking_sentences, chunking
 
-def import_lcfrs(lcfrs_dir : str, split : Literal["test"] | Literal["train"] | Literal["dev"], limit : Optional[int] = None) \
+def import_lcfrs(lcfrs_dir : str, split : Split, limit : Optional[int] = None) \
                             -> Tuple[Corpus, Corpus]:
     """
     Imports a LCFRS supertagged dataset. The splits are pre-determined
@@ -249,7 +261,7 @@ def import_lcfrs(lcfrs_dir : str, split : Literal["test"] | Literal["train"] | L
 
 
 
-def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : Literal["test"] | Literal["train"] | Literal["dev"],
+def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : Split,
                     limit : Optional[int] = None) -> Dict[str, Tuple[Corpus, Dict[str, Corpus]]]:
     """
     Retrieves the datasets (tokens and annotation) for the
@@ -299,10 +311,14 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
                 data_dict[corpus] = (chunking_sentences, {"chunking" : chunking})
 
             case "depptb":
-            
-                dep_sentences, dep = import_dep(corpus_dirs["depptb"], split, limit)
+                
+                task_names : FrozenSet[str] = frozenset(goal_tasks_by_corpus["depptb"])
+                assert(len(task_names - frozenset(("deprel","deprelPOS"))) == 0)
+                task_names = cast(FrozenSet[Literal["deprel","deprelPOS"]], task_names)
 
-                data_dict[corpus] = (dep_sentences, {"dep" : dep})
+                dep_sentences, dep_tasks = import_dep(corpus_dirs["depptb"], split, limit, encoding = task_names) # type: ignore
+
+                data_dict[corpus] = (dep_sentences, dep_tasks)
         
             case "lcfrsptb":
                 
@@ -536,8 +552,8 @@ class DataLoader():
 
 
     def __init__(self, tasks : Optional[Sequence[str]], corpus_dirs : Optional[Mapping[str, str]], 
-                    split : Optional[Literal["test"] | Literal["train"] | Literal["dev"]] = "train", 
-                    mode : Literal["train"] | Literal["eval"] = "train", limit : Optional[int] = None, 
+                    split : Optional[Split] = "train", 
+                    mode : Literal["train", "eval"] = "train", limit : Optional[int] = None, 
                     words2i : Optional[Dict[str, int]] = None, device : Optional[Device] = torch.device("cpu"), 
                     vocab : Optional[Dict[str, Tuple[List[str], Dict[str, int]]]] = None, 
                     data : Optional[Dict[str, Tuple[Corpus, Dict[str, Corpus]]]] = None,

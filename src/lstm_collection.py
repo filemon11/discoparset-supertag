@@ -449,7 +449,7 @@ class FastVariationalDropout(nn.Module):
         self.dropout = dropout
         self.batch_first = batch_first
 
-    def forward(self, x: torch.Tensor | PackedSequence) -> torch.Tensor | PackedSequence:
+    def forward(self, x: Union[torch.Tensor, PackedSequence]) -> Union[torch.Tensor, PackedSequence]:
         if not self.training or self.dropout <= 0.:
             return x
 
@@ -485,9 +485,9 @@ class FastLSTM(nn.LSTM):
                  batch_first=True, unit_forget_bias=True, **kwargs):
         super().__init__(*args, **kwargs, batch_first=batch_first)
 
-        self.dropoutw : float | None
-        self.input_drop : FastVariationalDropout | None
-        self.output_drop : FastVariationalDropout | None
+        self.dropoutw : Optional[float]
+        self.input_drop : Optional[FastVariationalDropout]
+        self.output_drop : Optional[FastVariationalDropout]
 
         self.unit_forget_bias = unit_forget_bias
 

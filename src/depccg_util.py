@@ -45,11 +45,11 @@ from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
 import torch
 
-Device = torch.device | int
+Device = Union[torch.device, int]
 """torch.device | int"""
 
-Variants = Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]
-"""Union[None, Literal["elmo"], Literal["rebank"], Literal["elmo_rebank"]]"""
+Variants = Union[None, Literal["elmo", "rebank", "elmo_rebank"]]
+"""Union[None, Literal["elmo", "rebank", "elmo_rebank"]]"""
 
 CCG_CATS : MappingProxyType[Variants, int] = MappingProxyType({ None : 425,
                                                                 "elmo" : 425,

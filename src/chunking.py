@@ -27,10 +27,10 @@ import_chunking_data
 from datasets import load_dataset, Dataset, DatasetDict
 
 from typing import List, Tuple, Literal, cast
-from parsing_typing import Corpus
+from parsing_typing import Corpus, Split
 
 
-def import_chunking_data(split : Literal["test"] | Literal["train"] | Literal["dev"]) -> Tuple[Corpus, List[List[int]]]:
+def import_chunking_data(split : Split) -> Tuple[Corpus, List[List[int]]]:
     """
     Imports the conll2000 chunking dataset with the help of the
     huggingface ``datasets`` module. Based on Wall Street Journal corpus (WSJ)

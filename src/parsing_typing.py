@@ -19,7 +19,7 @@ Device
 """
 
 import torch
-from typing import Sequence, List
+from typing import Sequence, List, Literal, Union
 
 AnySentence = Sequence[str]
 """Sequence[str]"""
@@ -31,5 +31,8 @@ AnyCorpus   = Sequence[AnySentence]
 Corpus      = List[Sentence]
 """List[Sentence]"""
 
-Device      = int | torch.device
+Device      = Union[int, torch.device]
 """int | torch.device"""
+
+Split      = Literal["train", "dev", "test"]
+"""Literal["train", "dev", "test"]"""

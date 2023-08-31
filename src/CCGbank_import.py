@@ -39,7 +39,7 @@ from collections import defaultdict
 from helpers import corpus_apply, intuple, outtuple, listify
 import os
 
-from typing import List, Tuple, Dict, Sequence, Optional, Generator
+from typing import List, Tuple, Dict, Sequence, Optional, Generator, Union
 
 from parsing_typing import Corpus, AnyCorpus, Sentence, AnySentence
 
@@ -83,7 +83,7 @@ class Tree:
     -------
     Leaf
     """
-    def __init__(self, category : str, children : List["Tree"] = [], parent : "None | Tree" = None):
+    def __init__(self, category : str, children : List["Tree"] = [], parent : "Union[None, Tree]" = None):
         '''
         Initialising method for the ``Tree`` class.
         Represents a node in an ordered tree that can have
@@ -108,7 +108,7 @@ class Tree:
         for child in self.children:
             child.parent = self
 
-        self.parent : "None | Tree" = parent
+        self.parent : "Union[None, Tree]" = parent
 
         self.index : Optional[Tuple[int, int]] = None
         "Start and end index of the span the node dominates."
@@ -203,7 +203,7 @@ class Leaf(Tree):
     -------
     Tree
     """
-    def __init__(self, category : str, word : str, pred_arg_cat : str, parent : "None | Tree" = None):
+    def __init__(self, category : str, word : str, pred_arg_cat : str, parent : "Union[None, Tree]" = None):
         '''
         Initialising method for the ``Leaf`` class.
         Represents a leaf in an ordered tree that can have
@@ -296,7 +296,7 @@ class Leaf(Tree):
         
         scope_list : List[Tuple[int, int]] = []
 
-        parent : None | Tree = self.parent
+        parent : Union[None, Tree] = self.parent
 
         depth : int = 0
 
@@ -647,8 +647,8 @@ def import_parg(filename : str, limit : int = 5) -> Tuple[List[List[str]], List[
                         sentence_right[sentence_number - 1][int(line_components[1])].append(arg_num + ":" + str(limit))
 
     # Concatenate the list of dependencies for each item into one feature.
-    output_list = ( [["_".join(word) for word in sentence] for sentence in sentence_left if len(sentence) > 1 ], \
-                    [["_".join(word) for word in sentence] for sentence in sentence_right if len(sentence) > 1 ])
+    output_list = ( [[("_".join(word) if len(word) > 1 else word[0]) for word in sentence] for sentence in sentence_left if len(sentence) > 1 ], \
+                    [[("_".join(word) if len(word) > 1 else word[0]) for word in sentence] for sentence in sentence_right if len(sentence) > 1 ])
         
     return output_list
 
