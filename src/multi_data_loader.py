@@ -158,7 +158,7 @@ def import_ccg_basic(ccg_dir : str, split : Split,
     return tokens, data
 
 def import_dep(dep_dir : str, split : Split, limit : Optional[int] = None,
-                encoding : frozenset[Union[Literal["deprel"], Literal["deprelPos"]]] = frozenset(("deprel",))) \
+                encoding : FrozenSet[Union[Literal["deprel"], Literal["deprelPos"]]] = frozenset(("deprel",))) \
                     -> Tuple[Corpus, Dict[str, Corpus]]:
     """
     Imports dependency information from the
