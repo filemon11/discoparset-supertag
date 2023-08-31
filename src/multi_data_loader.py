@@ -304,13 +304,13 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
     # import the necessary corpora
     for corpus in goal_tasks_by_corpus.keys():
 
-        match corpus:
-            case "conll2000":
+        if True:    # TODO introduce match statement
+            if corpus == "conll2000":
                 chunking_sentences, chunking = import_chunking(split, limit)
 
                 data_dict[corpus] = (chunking_sentences, {"chunking" : chunking})
 
-            case "depptb":
+            elif corpus == "depptb":
                 
                 task_names : FrozenSet[str] = frozenset(goal_tasks_by_corpus["depptb"])
                 assert(len(task_names - frozenset(("deprel","deprelPOS"))) == 0)
@@ -320,13 +320,13 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
 
                 data_dict[corpus] = (dep_sentences, dep_tasks)
         
-            case "lcfrsptb":
+            elif corpus == "lcfrsptb":
                 
                 lcfrs_sentences, supertags = import_lcfrs(corpus_dirs["lcfrsptb"], split, limit)
 
                 data_dict[corpus] = (lcfrs_sentences, {"lcfrs" : supertags})
 
-            case "ccg":
+            elif corpus ==  "ccg":
 
                 # for CCG, four basic tasks are available through the import_ccg_basic method.
                 # The other tasks need to be constructed using the supertags provided by the
@@ -351,18 +351,18 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
 
                 for task in goal_tasks_by_corpus[corpus]:
 
-                    match task:
-                        case "head":
+                    if True:         #TODO introduce match in future version
+                        if task == "head":
                             data_dict[corpus][1]["head"] = head
-                        case "arg":
+                        elif task == "arg":
                             data_dict[corpus][1]["arg"] = arg
-                        case "functor":
+                        elif task == "functor":
                            data_dict[corpus][1]["functor"] = functor
-                        case "sketch":
+                        elif task == "sketch":
                             data_dict[corpus][1]["sketch"] = corpus_apply(ccg_basic_task_data["supertag"], ccg.get_sketch)
-                        case "argstruct":
+                        elif task == "argstruct":
                             data_dict[corpus][1]["argstruct"] = corpus_apply(ccg_basic_task_data["supertag"], ccg.supertag_to_arg_struct)
-                        case "near":
+                        elif task == "near":
                             data_dict[corpus][1]["near"] = [ccg.create_near_action(sentence) for sentence in ccg_basic_task_data["supertag"]]
 
     return data_dict
