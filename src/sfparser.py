@@ -1406,6 +1406,7 @@ if __name__ == "__main__":
     eval_parser.add_argument("-ccg", type=str, default="../CCGrebank/data", help="CCGrebank directory")
     eval_parser.add_argument("-depptb", type=str, default="../DepPTB/treebank.conllu", help="CCGrebank directory")
     eval_parser.add_argument("-lcfrs", type=str, default="../LCFRS", help="LCFRS directory")
+    train_parser.add_argument("-LTAGspinal", type=str, default="../LTAGspinal", help="LTAG-spinal directory")
 
     eval_parser.add_argument("-pipeline", type=int, default=0, choices=[0,1], help="Use depCCG supertagger as input feature for parser. Must be set to the same value as in model training. 0 is false, 1 is true.")
     eval_parser.add_argument("-sM", type=str, default=None, choices=[None, "elmo", "rebank", "elmo_rebank"], help="DepCCG model to use for supertagging.")    
