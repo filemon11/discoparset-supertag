@@ -175,7 +175,7 @@ class Transducer(nn.Module):
                 m = (6 / n_ids)**0.5
                 p.data.uniform_(-m, m)
 
-    def forward(self, sentence, depth = -1, batch=False, parsing=False, supertags = None):
+    def forward(self, sentence, depth = -1, batch = False, parsing = False, supertags = None):
 
         output_list = self.token_encoder(sentence, depth, batch, parsing, supertags)
 
@@ -867,7 +867,7 @@ def main_train(args, logger, device):
     # Vocab
     # The tokens retrieved for auxiliary tasks are also treated as part
     # of the input alphabet. Currently, this would not be necessary since
-    # the auxiliary train corpora do not transcend the PTB/WSJ sections 2-22.
+    # the auxiliary train corpora do not transcend the PTB/WSJ sections 2-21.
     logger.info("Vocabulary extraction...")
     words, vocabulary, label_set, tag_set = get_vocabulary(train_corpus, *aux_train_loader.token_lists)
 

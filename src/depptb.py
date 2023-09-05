@@ -38,7 +38,7 @@ SPLITS : Mapping[str, Tuple[int, int]] = MappingProxyType({"train"   : (3915, 43
                                                                     "test"    : (45447, 47862 + 1)})
 """
 Standard splits of the Penn Treebank by sentence number.
-Section 2-22 train, 22-23 dev, 24 test.
+Section 2-21 train, 22 dev, 23 test.
 """
 
 def sentence_parse_deprel(sentence : TokenList, max_diff_in : int = 5) -> Sentence:
