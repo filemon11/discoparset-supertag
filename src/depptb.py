@@ -6,10 +6,12 @@ must be in .conllu format.
 
 Functions
 ----------
-sentence_parse
-    Extracts dependency features from a retrieved DepPTB sentence.
+sentence_parse_deprel
+    Retrieves dependency features in relative positional encoding.
+sentence_parse_deprelPOS
+    Retrieves dependency features in relative POS-based positional encoding.
 corpus_parse
-    Retrieves tokens and dependency features of a split of the corpus.
+    Retrieves a split of choice from the DepPTB with one or multiple encoding formats.
 
 CONSTANTS
 ----------
