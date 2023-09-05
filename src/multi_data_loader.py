@@ -37,6 +37,7 @@ import CCGbank_import as ccgbank
 import CCG_helper as ccg
 import chunking as chunk
 import lcfrs
+import LTAGspinal
 
 import depptb
 
@@ -60,12 +61,13 @@ except ImportError:
 from parsing_typing import Corpus, AnyCorpus, Device, Sentence, Split
 
 # specifying the annotated corpus the available auxiliary features are based on
-TASKS : Mapping[str, Tuple[str, ...]] = MappingProxyType({ "ccg" : ("supertag", "scope", "leftaction", 
-                                                                            "rightaction", "head", "arg", "sketch", 
-                                                                            "argstruct", "near", "functor"),
-                                                                    "depptb" : ("deprel", "deprelPOS"),
-                                                                    "conll2000" : ("chunking",),
-                                                                    "lcfrsptb" : ("lcfrs",)})
+TASKS : Mapping[str, Tuple[str, ...]] = MappingProxyType({  "ccg" : ("supertag", "scope", "leftaction", 
+                                                                    "rightaction", "head", "arg", "sketch", 
+                                                                    "argstruct", "near", "functor"),
+                                                            "depptb" : ("deprel", "deprelPOS"),
+                                                            "conll2000" : ("chunking",),
+                                                            "lcfrsptb" : ("lcfrs",),
+                                                            "LTAGspinalTB" : ("LTAGspinal",)})
 
 TASK2CORPUS : Mapping[str, str] = MappingProxyType({task : corpus for corpus, task_list in TASKS.items() for task in task_list})
 
@@ -169,7 +171,7 @@ def import_dep(dep_dir : str, split : Split, limit : Optional[int] = None,
     Parameters
     ----------
     dep_dir : str
-        path to depPTB .conll file (not split)
+        Path to depPTB .conll file (not split).
     split : Literal["test"] | Literal["train"] | Literal["dev"]
         The split of the dataset to return.
     limit : int | None, default = None, meaning no limit
@@ -200,6 +202,37 @@ def import_dep(dep_dir : str, split : Split, limit : Optional[int] = None,
         tasks[name] = task
 
     return tokens, tasks
+
+def import_LTAGspinal(dir : str, split : Split, limit : Optional[int] = None) \
+                    -> Tuple[Corpus, Corpus]:
+    """
+    Imports tokens and supertags from the
+    LTAG-spinal treebank.
+
+    Parameters
+    ----------
+    dir : str
+        Path to the LTAG-spinal directory that contains
+        the pre-split files.
+    split : Literal["test"] | Literal["train"] | Literal["dev"]
+        The split of the dataset to return.
+    limit : int | None, default = None, meaning no limit
+        Number of sentences to sample.
+
+    Returns
+    -------
+    tokens : List[List[str]]
+        The tokens.
+    features : Dict[str, List[List[str]]]
+        Supertags.
+    """
+
+    tokens      : Corpus
+    supertags   : Corpus
+
+    tokens, supertags = shuffle_and_limit(*LTAGspinal.extract(dir, split, version = 1), limit = limit)
+
+    return tokens, supertags
 
 def import_chunking(split : Split, limit : Optional[int] = None) \
                             -> Tuple[Corpus, Corpus]:
@@ -275,8 +308,8 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
     several tasks are extracted from the same corpus, it is
     only imported once. What parts are included on the split
     is dependent on the individual import functions. However,
-    sections 22-23 and 24 of of the Wall Street Journal 
-    corpus (WSJ), usually used as dev and test, are never
+    sections 22 and 23 of of the Wall Street Journal 
+    corpus (WSJ), used as dev and test for the DPTB, are never
     part of the train split.
 
     Parameters
@@ -331,6 +364,12 @@ def import_data(tasks : Sequence[str], corpus_dirs : Mapping[str, str], split : 
                 lcfrs_sentences, supertags = import_lcfrs(corpus_dirs["lcfrsptb"], split, limit)
 
                 data_dict[corpus] = (lcfrs_sentences, {"lcfrs" : supertags})
+
+            elif corpus == "LTAGspinalTB":
+                
+                LTAGspinal_sentences, supertags = import_LTAGspinal(corpus_dirs["LTAGspinalTB"], split, limit)
+
+                data_dict[corpus] = (LTAGspinal_sentences, {"LTAGspinal" : supertags})
 
             elif corpus ==  "ccg":
 

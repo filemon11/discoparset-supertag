@@ -848,7 +848,7 @@ def main_train(args, logger, device):
     # Aux tasks
     logger.info("Auxiliary corpora extraction...")
 
-    corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs}
+    corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs, "LTAGspinalTB" : args.LTAGspinal}
     
     tasks = ast.literal_eval(args.T)
     task2depth = {task : n + 1 for n, level in enumerate(tasks) for task in level}
@@ -1218,7 +1218,7 @@ def main_eval(args, logger, device):
         test_corpus = corpus_reader.read_ctbk_corpus(args.ctbk)
         test_sentences, test_raw_sentences, _, _ = prepare_corpus(test_corpus, words2i, device)
 
-        corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs}
+        corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs, "LTAGspinalTB" : args.LTAGspinal}
 
         if args.pipeline == 1:
             depccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu, args.sM)
@@ -1384,6 +1384,7 @@ if __name__ == "__main__":
     train_parser.add_argument("-ccg", type=str, default="../CCGrebank/data", help="CCGrebank directory")
     train_parser.add_argument("-depptb", type=str, default="../DepPTB/treebank.conllu", help="depPTB directory")
     train_parser.add_argument("-lcfrs", type=str, default="../LCFRS", help="LCFRS directory")
+    train_parser.add_argument("-LTAGspinal", type=str, default="../LTAGspinal", help="LTAG-spinal directory")
 
     train_parser.add_argument("-sup", type=int, default=0, help="Supertag pipeline hidden dimension; if 0 then the pipeline model is not used; must be set to 0 if auxiliary tasks are used")
     train_parser.add_argument("-Y", type=float, default=0, help="Supertag pipeline drop")
