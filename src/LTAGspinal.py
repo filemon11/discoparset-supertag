@@ -64,7 +64,8 @@ def extract_from_file(filename : str) -> Tuple[Corpus, Corpus]:
         line = next(file)
         while True:
             
-            if len(r := line.split()) > 1 and r[0] == "root":
+            r : List[str] = line.split()
+            if len(r) > 1 and r[0] == "root":
                 sen_num += 1
                 tokens.append([])
                 supertags.append([])
