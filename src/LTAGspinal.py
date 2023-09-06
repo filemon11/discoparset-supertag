@@ -83,6 +83,7 @@ def extract_from_file(filename : str) -> Tuple[Corpus, Corpus]:
             except StopIteration:
                 break
 
+    assert(all(len(sen_t) == len(sen_s) for sen_t, sen_s in zip(tokens, supertags)))
     return tokens, supertags
             
 
