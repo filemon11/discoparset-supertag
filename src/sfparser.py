@@ -1388,7 +1388,7 @@ if __name__ == "__main__":
 
     train_parser.add_argument("-sup", type=int, default=0, help="Supertag pipeline hidden dimension; if 0 then the pipeline model is not used; must be set to 0 if auxiliary tasks are used")
     train_parser.add_argument("-Y", type=float, default=0, help="Supertag pipeline drop")
-    train_parser.add_argument("-sM", type=str, default=None, choices=[None, "elmo", "rebank", "elmo_rebank"], help="DepCCG model to use for supertagging.")    
+    train_parser.add_argument("-sM", type=str, default="standard", choices=["standard", "elmo", "rebank", "elmo_rebank"], help="DepCCG model to use for supertagging.")    
 
     train_parser.add_argument("--dyno", type=float, default=None, help="Use the dynamic oracle")
 
@@ -1409,7 +1409,7 @@ if __name__ == "__main__":
     eval_parser.add_argument("-LTAGspinal", type=str, default="../LTAGspinal", help="LTAG-spinal directory")
 
     eval_parser.add_argument("-pipeline", type=int, default=0, choices=[0,1], help="Use depCCG supertagger as input feature for parser. Must be set to the same value as in model training. 0 is false, 1 is true.")
-    eval_parser.add_argument("-sM", type=str, default=None, choices=[None, "elmo", "rebank", "elmo_rebank"], help="DepCCG model to use for supertagging.")    
+    eval_parser.add_argument("-sM", type=str, default="standard", choices=["standard", "elmo", "rebank", "elmo_rebank"], help="DepCCG model to use for supertagging.")    
     eval_parser.add_argument("-ctbk", type=str, default=None, help="Corpus in ctbk format if tag and auxiliary tag eval is desired")
     eval_parser.add_argument("-split", type=str, default="test", help="Split for auxiliary eval data loading")
 
