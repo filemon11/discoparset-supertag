@@ -787,9 +787,8 @@ class DataLoader():
         assert(self.tensors is not None)
         assert(self.tensors_copy is not None)
 
-        for t, t_c, task in zip(self.tensors.values(), self.tensors_copy.values(), self.tensors.keys()):
-            print(task)
-            batch_stochastic_replacement(device, t, t_c, self.words2i, pword=pword)
+        for t, t_c in zip(self.tensors.values(), self.tensors_copy.values()):
+            batch_stochastic_replacement(device, t, t_c, self.words2i, pword = pword)
     
     def get_sample(self, size : int, device) -> "DataLoader":
         """

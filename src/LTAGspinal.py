@@ -71,8 +71,8 @@ def extract_from_file(filename : str) -> Tuple[Corpus, Corpus]:
                 supertags.append([])
                 
 
-            elif line[0] == "#":
-                tokens[sen_num].append(line.split()[1])
+            elif line[0] == "#" and r[1][0] != "*":     # Do not include traces (marked with *).
+                tokens[sen_num].append(r[1])
                 
                 line = next(file)
                 supertags[sen_num].append(line[8:-1])
@@ -84,6 +84,7 @@ def extract_from_file(filename : str) -> Tuple[Corpus, Corpus]:
                 break
 
     assert(all(len(sen_t) == len(sen_s) for sen_t, sen_s in zip(tokens, supertags)))
+
     return tokens, supertags
             
 
