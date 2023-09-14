@@ -1,0 +1,10 @@
+bugfixes for evaluator:
+in disco_transform_search.py:
+insert in line 230:
+    res = [r for r in res if r[2] or r[0] not in children_nodes]
+    # bugfix. Should not include children if add_and_move since children need to be detached later
+
+change line 399:
+    if change < -1 and (best is not None or value != None):
+        # Bugfix: for first iteration: cannot continue since that would leave best = None
+        continue

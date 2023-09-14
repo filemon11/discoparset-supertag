@@ -1,0 +1,48 @@
+Number of sentences: 266
+Number of phenomena occurrences: 302
+Number of phenomena per sentence: Counter({1: 232, 2: 32, 3: 2})
+Sentences with more than one occurrences: (34) [953, 551, 596, 968, 1685, 89, 151, 353, 469, 632, 860, 1139, 1163, 1396, 1502, 80, 111, 115, 123, 179, 191, 313, 384, 440, 644, 649, 709, 718, 857, 1182, 1695, 1187, 1658, 765]
+
+discodop eval ../gold_and_pred_data/ptb_dev_gold.discbracket ../gold_and_pred_data/ptb_dev_pred_baseline.discbracket proper.prm --fmt=discbracket --verbose --disconly
+Labelled = True
+Phenomenon	Count	Exact match	Partial match	Precision	Recall	F$_1$
+extraction                                   	91	76.9	85.7	90.0	78.8	84.0
+fronted quotation                            	71	93.0	93.0	95.7	93.0	94.3
+discontinuous dependency                     	37	24.3	29.7	78.6	25.0	37.9
+circumpositioned quotation                   	16	0.0	81.2	54.5	36.0	43.4
+It-extraposition                             	12	41.7	41.7	100.0	41.7	58.8
+extraction+fronted quotation                 	7	71.4	100.0	84.2	84.2	84.2
+discontinuous dependency+extraction          	5	20.0	80.0	61.1	64.7	62.9
+extraction+extraction                        	5	40.0	100.0	81.2	76.5	78.8
+subject inversion                            	5	60.0	60.0	100.0	60.0	75.0
+circumpositioned quotation+subject inversion 	4	0.0	50.0	25.0	18.2	21.1
+circumpositioned quotation+extraction        	3	33.3	100.0	88.9	72.7	80.0
+discontinuous dependency+fronted quotation   	2	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency+discontinuous dependency	2	0.0	0.0	0	0.0	0
+It-extraposition+extraction                  	2	100.0	100.0	100.0	100.0	100.0
+discontinuous dependency+discontinuous dependency+fronted quotation	1	0.0	100.0	100.0	20.0	33.3
+extraction+subject inversion                 	1	0.0	0.0	0.0	0.0	0
+extraction+extraction+fronted quotation      	1	100.0	100.0	100.0	100.0	100.0
+It-extraposition+It-extraposition            	1	0.0	100.0	100.0	50.0	66.7
+
+discodop eval ../gold_and_pred_data/ptb_dev_gold.discbracket_no_unary ../gold_and_pred_data/ptb_dev_pred_baseline.discbracket_no_unary proper_unlabelled.prm --fmt=discbracket --verbose --disconly
+Labelled = False
+Phenomenon	Count	Exact match	Partial match	Precision	Recall	F$_1$
+extraction                                   	91	76.9	85.7	89.6	80.0	84.5
+fronted quotation                            	71	93.0	93.0	95.7	93.0	94.3
+discontinuous dependency                     	37	24.3	29.7	78.6	25.6	38.6
+circumpositioned quotation                   	16	75.0	87.5	93.9	81.6	87.3
+It-extraposition                             	12	41.7	41.7	100.0	41.7	58.8
+extraction+fronted quotation                 	7	71.4	100.0	88.9	88.9	88.9
+discontinuous dependency+extraction          	5	20.0	80.0	60.0	60.0	60.0
+extraction+extraction                        	5	40.0	100.0	80.0	75.0	77.4
+subject inversion                            	5	60.0	60.0	100.0	60.0	75.0
+circumpositioned quotation+subject inversion 	4	75.0	75.0	85.7	75.0	80.0
+circumpositioned quotation+extraction        	3	100.0	100.0	100.0	100.0	100.0
+discontinuous dependency+fronted quotation   	2	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency+discontinuous dependency	2	0.0	0.0	0	0.0	0
+It-extraposition+extraction                  	2	100.0	100.0	100.0	100.0	100.0
+discontinuous dependency+discontinuous dependency+fronted quotation	1	0.0	100.0	100.0	20.0	33.3
+extraction+subject inversion                 	1	0.0	0.0	0.0	0.0	0
+extraction+extraction+fronted quotation      	1	100.0	100.0	100.0	100.0	100.0
+It-extraposition+It-extraposition            	1	0.0	100.0	100.0	50.0	66.7

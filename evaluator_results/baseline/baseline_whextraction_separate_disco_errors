@@ -1,0 +1,88 @@
+Number of sentences: 266
+Number of phenomena occurrences: 302
+Number of phenomena per sentence: Counter({1: 232, 2: 32, 3: 2})
+Sentences with more than one occurrences: (34) [953, 551, 596, 968, 1685, 89, 151, 353, 469, 632, 860, 1139, 1163, 1396, 1502, 80, 111, 115, 123, 179, 191, 313, 384, 440, 644, 649, 709, 718, 857, 1182, 1695, 1187, 1658, 765]
+
+discodop eval ../gold_and_pred_data/ptb_dev_gold.discbracket ../gold_and_pred_data/ptb_dev_pred_baseline.discbracket proper.prm --fmt=discbracket --verbose --disconly
+Labelled = True
+Phenomenon	Count	Exact match	Partial match	Precision	Recall	F$_1$
+fronted quotation                            	71	93.0	93.0	95.7	93.0	94.3
+discontinuous dependency                     	37	24.3	29.7	78.6	25.0	37.9
+extraction when                              	35	85.7	91.4	90.0	85.7	87.8
+circumpositioned quotation                   	16	0.0	81.2	54.5	36.0	43.4
+extraction where                             	14	85.7	85.7	95.5	91.3	93.3
+extraction which                             	12	75.0	91.7	96.2	89.3	92.6
+It-extraposition                             	12	41.7	41.7	100.0	41.7	58.8
+extraction how                               	9	66.7	77.8	68.8	57.9	62.9
+extraction that                              	9	44.4	66.7	93.8	62.5	75.0
+extraction what                              	9	77.8	77.8	80.0	61.5	69.6
+subject inversion                            	5	60.0	60.0	100.0	60.0	75.0
+circumpositioned quotation+subject inversion 	4	0.0	50.0	25.0	18.2	21.1
+extraction when+fronted quotation            	4	75.0	100.0	100.0	75.0	85.7
+discontinuous dependency+fronted quotation   	2	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency+discontinuous dependency	2	0.0	0.0	0	0.0	0
+extraction which+fronted quotation           	2	50.0	100.0	57.1	100.0	72.7
+circumpositioned quotation+extraction which  	2	50.0	100.0	100.0	85.7	92.3
+circumpositioned quotation+extraction when   	1	0.0	100.0	66.7	50.0	57.1
+discontinuous dependency+extraction which    	1	0.0	100.0	100.0	66.7	80.0
+discontinuous dependency+extraction what     	1	100.0	100.0	100.0	100.0	100.0
+discontinuous dependency+extraction who      	1	0.0	100.0	50.0	50.0	50.0
+discontinuous dependency+extraction when     	1	0.0	0.0	0.0	0.0	0
+discontinuous dependency+extraction how      	1	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency+discontinuous dependency+fronted quotation	1	0.0	100.0	100.0	20.0	33.3
+It-extraposition+extraction why              	1	100.0	100.0	100.0	100.0	100.0
+extraction when+subject inversion            	1	0.0	0.0	0.0	0.0	0
+extraction when+extraction when+fronted quotation	1	100.0	100.0	100.0	100.0	100.0
+extraction why                               	1	0.0	100.0	100.0	50.0	66.7
+extraction what+extraction when              	1	0.0	100.0	50.0	50.0	50.0
+It-extraposition+extraction whenever         	1	100.0	100.0	100.0	100.0	100.0
+extraction where+extraction where            	1	0.0	100.0	50.0	50.0	50.0
+extraction that+extraction what              	1	100.0	100.0	100.0	100.0	100.0
+extraction that+extraction when              	1	0.0	100.0	100.0	66.7	80.0
+extraction when+extraction where             	1	100.0	100.0	100.0	100.0	100.0
+extraction wherever                          	1	100.0	100.0	100.0	100.0	100.0
+extraction what+fronted quotation            	1	100.0	100.0	100.0	100.0	100.0
+extraction whatever                          	1	100.0	100.0	100.0	100.0	100.0
+It-extraposition+It-extraposition            	1	0.0	100.0	100.0	50.0	66.7
+
+discodop eval ../gold_and_pred_data/ptb_dev_gold.discbracket_no_unary ../gold_and_pred_data/ptb_dev_pred_baseline.discbracket_no_unary proper_unlabelled.prm --fmt=discbracket --verbose --disconly
+Labelled = False
+Phenomenon	Count	Exact match	Partial match	Precision	Recall	F$_1$
+fronted quotation                            	71	93.0	93.0	95.7	93.0	94.3
+discontinuous dependency                     	37	24.3	29.7	78.6	25.6	38.6
+extraction when                              	35	85.7	91.4	90.0	87.8	88.9
+circumpositioned quotation                   	16	75.0	87.5	93.9	81.6	87.3
+extraction where                             	14	85.7	85.7	95.5	91.3	93.3
+extraction which                             	12	75.0	91.7	95.7	88.0	91.7
+It-extraposition                             	12	41.7	41.7	100.0	41.7	58.8
+extraction how                               	9	66.7	77.8	68.8	61.1	64.7
+extraction that                              	9	44.4	66.7	93.3	63.6	75.7
+extraction what                              	9	77.8	77.8	80.0	66.7	72.7
+subject inversion                            	5	60.0	60.0	100.0	60.0	75.0
+circumpositioned quotation+subject inversion 	4	75.0	75.0	85.7	75.0	80.0
+extraction when+fronted quotation            	4	75.0	100.0	100.0	81.8	90.0
+discontinuous dependency+fronted quotation   	2	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency+discontinuous dependency	2	0.0	0.0	0	0.0	0
+extraction which+fronted quotation           	2	50.0	100.0	66.7	100.0	80.0
+circumpositioned quotation+extraction which  	2	100.0	100.0	100.0	100.0	100.0
+circumpositioned quotation+extraction when   	1	100.0	100.0	100.0	100.0	100.0
+discontinuous dependency+extraction which    	1	0.0	100.0	100.0	66.7	80.0
+discontinuous dependency+extraction what     	1	100.0	100.0	100.0	100.0	100.0
+discontinuous dependency+extraction who      	1	0.0	100.0	33.3	33.3	33.3
+discontinuous dependency+extraction when     	1	0.0	0.0	0.0	0.0	0
+discontinuous dependency+extraction how      	1	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency+discontinuous dependency+fronted quotation	1	0.0	100.0	100.0	20.0	33.3
+It-extraposition+extraction why              	1	100.0	100.0	100.0	100.0	100.0
+extraction when+subject inversion            	1	0.0	0.0	0.0	0.0	0
+extraction when+extraction when+fronted quotation	1	100.0	100.0	100.0	100.0	100.0
+extraction why                               	1	0.0	100.0	100.0	50.0	66.7
+extraction what+extraction when              	1	0.0	100.0	50.0	50.0	50.0
+It-extraposition+extraction whenever         	1	100.0	100.0	100.0	100.0	100.0
+extraction where+extraction where            	1	0.0	100.0	50.0	50.0	50.0
+extraction that+extraction what              	1	100.0	100.0	100.0	100.0	100.0
+extraction that+extraction when              	1	0.0	100.0	100.0	66.7	80.0
+extraction when+extraction where             	1	100.0	100.0	100.0	100.0	100.0
+extraction wherever                          	1	100.0	100.0	100.0	100.0	100.0
+extraction what+fronted quotation            	1	100.0	100.0	100.0	100.0	100.0
+extraction whatever                          	1	100.0	100.0	100.0	100.0	100.0
+It-extraposition+It-extraposition            	1	0.0	100.0	100.0	50.0	66.7

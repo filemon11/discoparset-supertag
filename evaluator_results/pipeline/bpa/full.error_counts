@@ -1,0 +1,27 @@
+# Time of run:
+# Mon Sep 11 11:47:00 2023
+# Command:
+# disco_berkeley_parser_analyser/classify_english.py gold_and_pred_data/ptb_dev_gold.discbracket gold_and_pred_data/ptb_dev_pred_pipeline.discbracket results/pipeline/bpa/full
+#
+461 1068 PP Attachment
+389 461 Single Word Phrase
+378 378 Unary
+291 359 NP Internal Structure
+244 426 Modifier Attachment
+224 448 Different label
+220 223 UNSET add
+172 447 Clause Attachment
+149 159 UNSET remove
+135 397 Co-ordination
+102 334 NP Attachment
+76 238 UNSET move
+42 173 VP Attachment
+31 45 disco-PP Attachment
+21 43 disco-Clause Attachment
+20 19 disco-NP Attachment
+19 59 disco-Different label
+10 17 disco-Modifier Attachment
+9 9 XoverX Unary
+5 12 disco-VP Attachment
+4 7 disco-Co-ordination
+1 1 disco-Unary

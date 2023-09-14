@@ -1,0 +1,64 @@
+Number of sentences: 266
+Number of phenomena occurrences: 302
+Number of phenomena per sentence: Counter({1: 232, 2: 32, 3: 2})
+Sentences with more than one occurrences: (34) [953, 551, 596, 968, 1685, 89, 151, 353, 469, 632, 860, 1139, 1163, 1396, 1502, 80, 111, 115, 123, 179, 191, 313, 384, 440, 644, 649, 709, 718, 857, 1182, 1695, 1187, 1658, 765]
+
+discodop eval ../gold_and_pred_data/ptb_dev_gold.discbracket ../gold_and_pred_data/ptb_dev_pred_auxiliary.discbracket proper.prm --fmt=discbracket --verbose --disconly
+Labelled = True
+Phenomenon	Count	Exact match	Partial match	Precision	Recall	F$_1$
+extraction                                   	91	78.0	87.9	89.9	83.1	86.4
+fronted quotation                            	71	93.0	93.0	94.3	93.0	93.6
+circumpositioned quotation                   	16	0.0	75.0	46.7	28.0	35.0
+discontinuous dependency SBAR                	13	7.7	7.7	50.0	7.1	12.5
+It-extraposition                             	12	50.0	50.0	100.0	50.0	66.7
+discontinuous dependency S                   	11	63.6	63.6	100.0	58.3	73.7
+discontinuous dependency PP                  	7	14.3	28.6	100.0	27.3	42.9
+extraction+fronted quotation                 	7	100.0	100.0	100.0	100.0	100.0
+extraction+extraction                        	5	40.0	100.0	93.8	88.2	90.9
+subject inversion                            	5	60.0	60.0	100.0	60.0	75.0
+circumpositioned quotation+subject inversion 	4	0.0	100.0	50.0	45.5	47.6
+circumpositioned quotation+extraction        	3	66.7	100.0	90.0	81.8	85.7
+discontinuous dependency PP+fronted quotation	2	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency VP                  	2	50.0	50.0	100.0	50.0	66.7
+discontinuous dependency SBAR+extraction     	2	0.0	100.0	77.8	87.5	82.4
+discontinuous dependency ADJP                	2	0.0	0.0	0	0.0	0
+discontinuous dependency PP+extraction       	2	0.0	100.0	50.0	33.3	40.0
+discontinuous dependency PP+discontinuous dependency PP	2	0.0	0.0	0	0.0	0
+It-extraposition+extraction                  	2	50.0	100.0	50.0	75.0	60.0
+discontinuous dependency NP+extraction       	1	0.0	100.0	100.0	66.7	80.0
+discontinuous dependency VBD-PP              	1	0.0	0.0	0	0.0	0
+discontinuous dependency NP                  	1	0.0	0.0	0	0.0	0
+discontinuous dependency PP+discontinuous dependency PP+fronted quotation	1	0.0	100.0	100.0	20.0	33.3
+extraction+subject inversion                 	1	0.0	100.0	100.0	33.3	50.0
+extraction+extraction+fronted quotation      	1	100.0	100.0	100.0	100.0	100.0
+It-extraposition+It-extraposition            	1	100.0	100.0	100.0	100.0	100.0
+
+discodop eval ../gold_and_pred_data/ptb_dev_gold.discbracket_no_unary ../gold_and_pred_data/ptb_dev_pred_auxiliary.discbracket_no_unary proper_unlabelled.prm --fmt=discbracket --verbose --disconly
+Labelled = False
+Phenomenon	Count	Exact match	Partial match	Precision	Recall	F$_1$
+extraction                                   	91	78.0	87.9	90.0	84.0	86.9
+fronted quotation                            	71	93.0	93.0	94.3	93.0	93.6
+circumpositioned quotation                   	16	75.0	87.5	96.7	76.3	85.3
+discontinuous dependency SBAR                	13	7.7	7.7	50.0	7.1	12.5
+It-extraposition                             	12	50.0	50.0	100.0	50.0	66.7
+discontinuous dependency S                   	11	63.6	63.6	100.0	58.3	73.7
+discontinuous dependency PP                  	7	14.3	28.6	100.0	20.0	33.3
+extraction+fronted quotation                 	7	100.0	100.0	100.0	100.0	100.0
+extraction+extraction                        	5	40.0	100.0	93.3	87.5	90.3
+subject inversion                            	5	60.0	60.0	100.0	60.0	75.0
+circumpositioned quotation+subject inversion 	4	100.0	100.0	100.0	100.0	100.0
+circumpositioned quotation+extraction        	3	100.0	100.0	100.0	100.0	100.0
+discontinuous dependency PP+fronted quotation	2	0.0	100.0	100.0	50.0	66.7
+discontinuous dependency VP                  	2	50.0	50.0	100.0	50.0	66.7
+discontinuous dependency SBAR+extraction     	2	0.0	100.0	75.0	85.7	80.0
+discontinuous dependency ADJP                	2	0.0	0.0	0	0.0	0
+discontinuous dependency PP+extraction       	2	0.0	100.0	66.7	40.0	50.0
+discontinuous dependency PP+discontinuous dependency PP	2	0.0	0.0	0	0.0	0
+It-extraposition+extraction                  	2	50.0	100.0	50.0	75.0	60.0
+discontinuous dependency NP+extraction       	1	0.0	100.0	100.0	66.7	80.0
+discontinuous dependency VBD-PP              	1	0.0	0.0	0	0.0	0
+discontinuous dependency NP                  	1	0.0	0.0	0	0.0	0
+discontinuous dependency PP+discontinuous dependency PP+fronted quotation	1	0.0	100.0	100.0	20.0	33.3
+extraction+subject inversion                 	1	0.0	100.0	100.0	33.3	50.0
+extraction+extraction+fronted quotation      	1	100.0	100.0	100.0	100.0	100.0
+It-extraposition+It-extraposition            	1	100.0	100.0	100.0	100.0	100.0
