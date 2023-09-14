@@ -8,3 +8,7 @@ change line 399:
     if change < -1 and (best is not None or value != None):
         # Bugfix: for first iteration: cannot continue since that would leave best = None
         continue
+
+
+For the pipeline mode .discbracket prediction a single sentence had to be replaced with its gold tree 
+since the bpa analyser could not handle the prediction of a non ROOT label as root.
