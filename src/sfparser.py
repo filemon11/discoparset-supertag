@@ -981,10 +981,12 @@ def main_train(args, logger, device):
     # Supertag the train and dev corpus pre-training to use supertags
     # as input features.
     if args.sup > 0:
-        ccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu, variant = args.sM)
+        ccg_model = depccg.load_model(-1 if args.gpu is None or args.gpu == -1 else args.gpu, variant = args.sM)    # -1
 
         train_ccg_corpus    = depccg.supertag_distribution(train_raw_sentences, device, ccg_model)
         dev_ccg_corpus      = depccg.supertag_distribution(dev_raw_sentences, device, ccg_model)
+
+        del ccg_model
 
     if args.sup > 0:
         sample_train_ccg_corpus = train_ccg_corpus[:len(dev_sentences)//4]
@@ -1221,7 +1223,7 @@ def main_eval(args, logger, device):
         corpus_dirs = {"ccg" : args.ccg, "depptb" : args.depptb, "lcfrsptb" : args.lcfrs, "LTAGspinalTB" : args.LTAGspinal}
 
         if args.pipeline == 1:
-            depccg_model = depccg.load_model(-1 if args.gpu is None else args.gpu, args.sM)
+            depccg_model = depccg.load_model(-1 if args.gpu is None or args.gpu == -1 else args.gpu, args.sM) #-1
             start_supertag = time.time()
             test_ccg_corpus = depccg.supertag_distribution(test_raw_sentences, tensor_device = device, model = depccg_model)
             end_supertag = time.time()
@@ -1399,7 +1401,7 @@ if __name__ == "__main__":
     eval_parser.add_argument("--gold", default=None, help="Gold corpus (discbracket). If provided, eval with discodop")
 
     # test options
-    eval_parser.add_argument("--gpu", type=int, default=None, help="Use GPU <int> if available")
+    eval_parser.add_argument("--gpu", type=int, default=None, help="Use GPU <int> if available, -1 is cpu")
     eval_parser.add_argument("-v", type=int, default=1, choices=[0,1], help="Verbosity level")
     eval_parser.add_argument("-t", type=int, default=1, help="Number of threads for torch cpu")
 
@@ -1427,11 +1429,11 @@ if __name__ == "__main__":
     if args.mode == "train":
         os.makedirs(args.model, exist_ok = True)
 
-    if args.gpu is not None:
+    if args.gpu is not None and args.gpu != -1:
         os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
     use_cuda = torch.cuda.is_available()
-    if use_cuda and args.gpu is not None:
+    if use_cuda and (args.gpu is not None and args.gpu != -1):
         logger.info("Using gpu {}".format(args.gpu))
         device = torch.device("cuda".format(args.gpu))
     else:
