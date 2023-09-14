@@ -3,25 +3,19 @@
 
 # Discoparset
 
-This is the code for:
-
-Integrating Supertag Features into Neural Discontinuous Constituent Parsing
-Lukas Mielczarek
-[[pdf]](DOWNLOAD)
-
 ## Install dependencies
 
 Assuming you have a Python 3.10.9 environment.
-
-And finally:
-
-    pip install -r requirements.txt
 
 Install disco-dop (https://github.com/andreasvc/disco-dop)
 
 Install depCCG (2.0.3.2): (https://github.com/masashi-y/depccg)
 Note that the model (English default) currently needs to be downloaded manually
 (see https://github.com/masashi-y/depccg/issues/10)
+
+After that run:
+
+    pip install -r requirements.txt
 
 ## Generate datasets
     
@@ -44,20 +38,34 @@ Place unzipped ``DepPTB`` folder into project directory.
 Path can be changed via ``-depptb`` parameter when 
 launching ``sfparser.py``.
 
+**LCFRS:**
+
+Convert ``dptb7.export`` via LCFRS supertagger (https://github.com/truprecht/lcfrs-supertagger).
+Extract contents of ``.corpus-cache/dptb.3914-39832-1700-2416.bin-0-1-r.Vanilla.Vanilla.tar.gz``
+into a folder named ``LCFRS`` in the project directory.
+Path can be changed via ``-lcfrs`` parameter when 
+launching ``sfparser.py``.
+
+**LTAG-spinal:**
+
+Download LTAG-spinal treebank from https://www.cis.upenn.edu/~xtag/spinal/ and place
+contents into a folder named ``LTAGspinal``in the project directory
+Path can be changed via ``-LTAGspinal`` parameter when 
+launching ``sfparser.py``.
+
 ## Reproduce result with pretrained models:
 
-    TODO -> Only One eval script
-    cd src
-    # python parser.py eval <pretrained model>  <input: 1 tokenized sentence per line> <output> [--gpu <gpu_id>] [--gold gold.discbracket]
-    python parser.py eval ../pretrained_models/dptb_dynamic_oracle/  ../multilingual_disco_data/data/dptb/dev.tokens ptb_dev_out --gpu 0 --gold ../multilingual_disco_data/data/dptb/dev.discbracket
+Each model has its own launch_experiments_<model>.sh script. In the script, comment out the line 
+starting with ``python sfparser.py train``. Then run in terminal:
 
-    # --gpu 0  -> use gpu number 0
-    # --gold gold.discbracket: evaluate output against gold corpus after parsing
+    sh launch_experiments_<model>.sh "dptb" "../pretrained_models/<model> <device>
 
-    # Expected results
-    ...
-    TODO
+Use -1 for CPU and 0 for GPU (assuming you have only one GPU).
 
 ## Reproduce results by retraining models:
 
-    TODO
+Each model has its own launch_experiments_<model>.sh script. Run in terminal:
+
+    sh launch_experiments_<model>.sh "dptb" "../pretrained_models/<model> <device>
+
+Use -1 for CPU and 0 for GPU (assuming you have only one GPU).
