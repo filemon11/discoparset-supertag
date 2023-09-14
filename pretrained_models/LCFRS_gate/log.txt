@@ -1,0 +1,186 @@
+mode train
+model ../pretrained_models/none_all_old_aux_lcfrs
+train ../multilingual_disco_data/data/dptb/train.ctbk
+dev ../multilingual_disco_data/data/dptb/dev.ctbk
+gpu 0
+t 1
+S None
+v 1
+i 100
+l 0.01
+m 0.0
+d 1e-07
+E 4
+A False
+I 0.1
+G 100.0
+B 1
+O asgd
+s 10
+K 0.0
+Q 0.0
+D 0.2
+X 0.5
+H 200
+C 100
+c 100
+w 32
+W 400
+a tanh
+Ra 0
+Rg 0
+Rga 1
+vi 0.0
+vh 0.0
+it 1
+L 0
+ph 2
+th 0
+pb 0
+tb 0
+T [['tag'],['lcfrs'],['parsing']]
+ccg ../CCGrebank/data
+depptb ../DepPTB/treebank.conllu
+lcfrs ../LCFRS
+sup 0
+Y 0.0
+dyno 0.15
+number of lcfrs labels: 4504
+Num data points: 1860224
+Mean size of mem: 3.911322507396959
+Max size of mem: 29
+Std: 3.2225106768432816
+Distribution:
+Size N %
+0	211377	11.36	11.362986393036538
+1	297797	16.01	27.37164986582261
+2	243629	13.10	40.468405955411825
+3	228083	12.26	52.72945623752839
+4	205988	11.07	63.80274633592514
+5	173122	9.31	73.10925996009084
+6	139255	7.49	80.59518638615566
+7	107386	5.77	86.36793203399162
+8	79678	4.28	90.65117964288173
+9	57486	3.09	93.74145264226244
+10	40105	2.16	95.89737579990367
+11	27095	1.46	97.35392081813804
+12	17812	0.96	98.31143991261268
+13	11465	0.62	98.92776353815455
+14	7293	0.39	99.31981309777748
+15	4680	0.25	99.57139570288311
+16	2967	0.16	99.73089262368404
+17	1880	0.10	99.83195572146151
+18	1164	0.06	99.8945288309365
+19	733	0.04	99.93393268767633
+20	482	0.03	99.95984354572353
+21	283	0.02	99.97505676735706
+22	166	0.01	99.98398042386295
+23	105	0.01	99.98962490538776
+24	63	0.00	99.99301159430264
+25	50	0.00	99.99569944264779
+26	41	0.00	99.99790347829081
+27	29	0.00	99.999462430331
+28	8	0.00	99.99989248606622
+29	2	0.00	100.00000000000003
+Training sentences: 39832
+Dev set sentences: 1700
+Ep1 lr=0.00988 Tr l=12.16432 tl=0.13961 lcfrsl=1.57341 normp=41.151 normt=15.365 normlcfrs=48.124
+Ep2 lr=0.00977 Tr l=15.03924 tl=0.11439 lcfrsl=0.80179 normp=38.091 normt=14.679 normlcfrs=39.024
+Ep3 lr=0.00965 Tr l=12.86295 tl=0.09694 lcfrsl=0.64201 normp=35.589 normt=13.103 normlcfrs=35.892
+Ep4 lr=0.00954 Tr l=11.51536 tl=0.08958 lcfrsloss=0.55973 pr91/91 f=91.13 u=92/92/92.2 t=97.90 lcfrs=87.00 Dev pr88/89 f=88.99 (89.84) u=90/90/90.3 t=97.13 lcfrs=84.24
+Ep5 lr=0.00944 Tr l=11.36450 tl=0.08475 lcfrsl=0.50089 normp=33.351 normt=12.340 normlcfrs=34.342
+Ep6 lr=0.00933 Tr l=9.73594 tl=0.08164 lcfrsl=0.45436 normp=32.467 normt=12.171 normlcfrs=34.000
+Ep7 lr=0.00923 Tr l=10.10312 tl=0.07846 lcfrsl=0.41826 normp=32.406 normt=12.014 normlcfrs=34.107
+Ep8 lr=0.00913 Tr l=9.32685 tl=0.07692 lcfrsloss=0.38894 pr94/93 f=93.94 u=94/94/94.8 t=98.21 lcfrs=90.62 Dev pr89/89 f=89.93 (90.79) u=91/91/91.2 t=97.23 lcfrs=85.87
+Ep9 lr=0.00903 Tr l=8.84429 tl=0.07483 lcfrsl=0.36291 normp=31.958 normt=11.966 normlcfrs=34.281
+Ep10 lr=0.00893 Tr l=8.81143 tl=0.07351 lcfrsl=0.34335 normp=31.869 normt=11.991 normlcfrs=34.510
+Ep11 lr=0.00884 Tr l=8.20266 tl=0.07301 lcfrsl=0.32642 normp=31.728 normt=12.001 normlcfrs=34.851
+Ep12 lr=0.00875 Tr l=8.26899 tl=0.07237 lcfrsloss=0.31032 pr95/94 f=95.10 u=95/95/95.8 t=98.42 lcfrs=92.43 Dev pr90/90 f=90.30 (91.17) u=91/91/91.5 t=97.26 lcfrs=86.39
+Ep13 lr=0.00866 Tr l=8.40821 tl=0.07123 lcfrsl=0.29727 normp=31.918 normt=12.060 normlcfrs=35.283
+Ep14 lr=0.00857 Tr l=7.81556 tl=0.07092 lcfrsl=0.28731 normp=31.648 normt=12.020 normlcfrs=35.492
+Ep15 lr=0.00848 Tr l=7.59716 tl=0.06967 lcfrsl=0.27558 normp=31.863 normt=11.949 normlcfrs=35.782
+Ep16 lr=0.00839 Tr l=7.61859 tl=0.06836 lcfrsloss=0.26367 pr96/95 f=96.03 u=96/96/96.6 t=98.51 lcfrs=93.61 Dev pr90/90 f=90.46 (91.30) u=91/91/91.7 t=97.26 lcfrs=86.66
+Ep17 lr=0.00831 Tr l=7.08021 tl=0.06771 lcfrsl=0.25714 normp=31.077 normt=11.930 normlcfrs=36.023
+Ep18 lr=0.00823 Tr l=7.41247 tl=0.06759 lcfrsl=0.24888 normp=31.053 normt=11.921 normlcfrs=36.301
+Ep19 lr=0.00815 Tr l=7.25963 tl=0.06755 lcfrsl=0.24227 normp=31.215 normt=11.986 normlcfrs=36.610
+Ep20 lr=0.00807 Tr l=6.35619 tl=0.06688 lcfrsloss=0.23596 pr96/96 f=96.63 u=97/96/97.2 t=98.56 lcfrs=94.61 Dev pr90/90 f=90.51 (91.36) u=91/91/91.7 t=97.26 lcfrs=86.83
+Ep21 lr=0.00799 Tr l=7.52198 tl=0.06626 lcfrsl=0.22778 normp=31.098 normt=11.884 normlcfrs=36.431
+Ep22 lr=0.00792 Tr l=7.13379 tl=0.06574 lcfrsl=0.22329 normp=30.486 normt=11.934 normlcfrs=36.850
+Ep23 lr=0.00784 Tr l=7.31476 tl=0.06527 lcfrsl=0.21838 normp=30.837 normt=11.887 normlcfrs=36.783
+Ep24 lr=0.00777 Tr l=7.05725 tl=0.06465 lcfrsloss=0.21224 pr97/97 f=97.14 u=97/97/97.6 t=98.65 lcfrs=95.35 Dev pr90/90 f=90.47 (91.31) u=91/91/91.6 t=97.29 lcfrs=86.92
+Ep25 lr=0.00770 Tr l=7.14893 tl=0.06473 lcfrsl=0.20710 normp=31.109 normt=11.853 normlcfrs=36.727
+Ep26 lr=0.00763 Tr l=6.62885 tl=0.06383 lcfrsl=0.20278 normp=31.122 normt=11.810 normlcfrs=37.441
+Ep27 lr=0.00756 Tr l=7.03767 tl=0.06375 lcfrsl=0.20028 normp=30.978 normt=11.921 normlcfrs=37.421
+Ep28 lr=0.00749 Tr l=6.22241 tl=0.06318 lcfrsloss=0.19436 pr97/97 f=97.73 u=98/98/98.1 t=98.69 lcfrs=95.88 Dev pr90/90 f=90.61 (91.44) u=91/91/91.8 t=97.30 lcfrs=87.00
+Ep29 lr=0.00743 Tr l=6.33973 tl=0.06275 lcfrsl=0.18947 normp=30.160 normt=11.854 normlcfrs=36.883
+Ep30 lr=0.00736 Tr l=6.37346 tl=0.06230 lcfrsl=0.18708 normp=29.969 normt=11.712 normlcfrs=37.194
+Ep31 lr=0.00730 Tr l=6.73996 tl=0.06231 lcfrsl=0.18318 normp=30.554 normt=11.784 normlcfrs=37.015
+Ep32 lr=0.00723 Tr l=6.68544 tl=0.06167 lcfrsloss=0.18301 pr98/97 f=98.03 u=98/98/98.4 t=98.72 lcfrs=96.32 Dev pr90/90 f=90.48 (91.34) u=91/91/91.7 t=97.31 lcfrs=86.95
+Ep33 lr=0.00717 Tr l=6.33855 tl=0.06156 lcfrsl=0.17939 normp=30.187 normt=11.805 normlcfrs=37.800
+Ep34 lr=0.00711 Tr l=6.41474 tl=0.06064 lcfrsl=0.17371 normp=29.697 normt=11.734 normlcfrs=37.187
+Ep35 lr=0.00705 Tr l=6.22344 tl=0.06036 lcfrsl=0.16876 normp=29.490 normt=11.671 normlcfrs=36.991
+Ep36 lr=0.00699 Tr l=6.15955 tl=0.06020 lcfrsloss=0.16751 pr98/98 f=98.39 u=98/98/98.7 t=98.79 lcfrs=96.73 Dev pr90/90 f=90.46 (91.32) u=91/91/91.7 t=97.32 lcfrs=86.93
+Ep37 lr=0.00693 Tr l=6.51743 tl=0.05976 lcfrsl=0.16395 normp=29.260 normt=11.608 normlcfrs=36.725
+Ep38 lr=0.00688 Tr l=6.43833 tl=0.05992 lcfrsl=0.16139 normp=29.737 normt=11.621 normlcfrs=36.911
+Ep39 lr=0.00682 Tr l=6.05096 tl=0.05895 lcfrsl=0.15606 normp=28.346 normt=11.528 normlcfrs=36.331
+Ep40 lr=0.00677 Tr l=5.74999 tl=0.05830 lcfrsloss=0.15352 pr98/98 f=98.59 u=99/98/98.9 t=98.81 lcfrs=97.02 Dev pr90/90 f=90.49 (91.36) u=91/91/91.7 t=97.30 lcfrs=86.90
+Ep41 lr=0.00671 Tr l=6.13961 tl=0.05775 lcfrsl=0.15011 normp=28.234 normt=11.399 normlcfrs=36.114
+Ep42 lr=0.00666 Tr l=5.98696 tl=0.05714 lcfrsl=0.14850 normp=28.342 normt=11.391 normlcfrs=36.205
+Ep43 lr=0.00661 Tr l=6.28391 tl=0.05761 lcfrsl=0.14650 normp=28.269 normt=11.459 normlcfrs=36.640
+Ep44 lr=0.00655 Tr l=5.89466 tl=0.05681 lcfrsloss=0.14391 pr98/98 f=98.65 u=99/98/99.0 t=98.83 lcfrs=97.29 Dev pr90/90 f=90.43 (91.31) u=91/91/91.6 t=97.29 lcfrs=86.89
+Ep45 lr=0.00650 Tr l=6.07544 tl=0.05613 lcfrsl=0.13915 normp=27.608 normt=11.210 normlcfrs=35.226
+Ep46 lr=0.00645 Tr l=5.18371 tl=0.05566 lcfrsl=0.13615 normp=27.054 normt=11.189 normlcfrs=35.066
+Ep47 lr=0.00640 Tr l=5.95066 tl=0.05527 lcfrsl=0.13280 normp=26.927 normt=11.240 normlcfrs=34.894
+Ep48 lr=0.00635 Tr l=5.83331 tl=0.05448 lcfrsloss=0.13056 pr98/98 f=98.82 u=99/98/99.1 t=98.82 lcfrs=97.58 Dev pr90/90 f=90.42 (91.29) u=91/91/91.6 t=97.30 lcfrs=86.85
+Ep49 lr=0.00631 Tr l=5.19804 tl=0.05419 lcfrsl=0.12894 normp=26.352 normt=11.126 normlcfrs=34.736
+Ep50 lr=0.00626 Tr l=6.33891 tl=0.05408 lcfrsl=0.12604 normp=26.584 normt=11.058 normlcfrs=34.518
+Ep51 lr=0.00621 Tr l=6.05704 tl=0.05359 lcfrsl=0.12467 normp=25.900 normt=11.052 normlcfrs=34.318
+Ep52 lr=0.00617 Tr l=5.47502 tl=0.05282 lcfrsloss=0.12050 pr99/98 f=98.89 u=99/99/99.2 t=98.83 lcfrs=97.82 Dev pr90/90 f=90.37 (91.25) u=91/91/91.6 t=97.29 lcfrs=86.78
+Ep53 lr=0.00612 Tr l=5.62886 tl=0.05226 lcfrsl=0.11624 normp=25.257 normt=10.925 normlcfrs=33.240
+Ep54 lr=0.00608 Tr l=5.24801 tl=0.05196 lcfrsl=0.11518 normp=25.095 normt=10.881 normlcfrs=33.199
+Ep55 lr=0.00603 Tr l=5.59833 tl=0.05142 lcfrsl=0.11262 normp=24.718 normt=10.783 normlcfrs=32.547
+Ep56 lr=0.00599 Tr l=5.56928 tl=0.05099 lcfrsloss=0.10930 pr99/98 f=98.93 u=99/99/99.2 t=98.88 lcfrs=98.04 Dev pr90/90 f=90.28 (91.18) u=91/91/91.5 t=97.29 lcfrs=86.73
+Ep57 lr=0.00595 Tr l=5.43023 tl=0.05082 lcfrsl=0.10736 normp=24.002 normt=10.792 normlcfrs=31.912
+Ep58 lr=0.00591 Tr l=5.31257 tl=0.05019 lcfrsl=0.10528 normp=23.579 normt=10.665 normlcfrs=31.705
+Ep59 lr=0.00587 Tr l=5.40285 tl=0.04923 lcfrsl=0.10154 normp=23.836 normt=10.545 normlcfrs=31.348
+Ep60 lr=0.00582 Tr l=5.57647 tl=0.04891 lcfrsloss=0.10028 pr99/98 f=98.97 u=99/99/99.3 t=98.91 lcfrs=98.22 Dev pr90/90 f=90.18 (91.09) u=91/91/91.4 t=97.28 lcfrs=86.75
+Ep61 lr=0.00578 Tr l=5.35314 tl=0.04893 lcfrsl=0.09863 normp=22.934 normt=10.504 normlcfrs=30.764
+Ep62 lr=0.00574 Tr l=5.20400 tl=0.04752 lcfrsl=0.09513 normp=22.124 normt=10.322 normlcfrs=29.659
+Ep63 lr=0.00571 Tr l=5.50602 tl=0.04748 lcfrsl=0.09188 normp=22.054 normt=10.353 normlcfrs=29.211
+Ep64 lr=0.00567 Tr l=5.03124 tl=0.04717 lcfrsloss=0.09085 pr99/98 f=99.03 u=99/99/99.3 t=98.91 lcfrs=98.44 Dev pr90/90 f=90.15 (91.04) u=91/91/91.4 t=97.28 lcfrs=86.73
+Ep65 lr=0.00563 Tr l=5.28231 tl=0.04675 lcfrsl=0.08768 normp=21.794 normt=10.252 normlcfrs=29.121
+Ep66 lr=0.00559 Tr l=5.35921 tl=0.04616 lcfrsl=0.08605 normp=21.340 normt=10.267 normlcfrs=28.761
+Ep67 lr=0.00555 Tr l=5.22083 tl=0.04568 lcfrsl=0.08431 normp=21.166 normt=10.167 normlcfrs=28.097
+Ep68 lr=0.00552 Tr l=5.41446 tl=0.04556 lcfrsloss=0.08184 pr99/98 f=99.08 u=99/99/99.4 t=98.95 lcfrs=98.60 Dev pr90/90 f=90.19 (91.09) u=91/91/91.5 t=97.28 lcfrs=86.68
+Ep69 lr=0.00548 Tr l=5.49870 tl=0.04476 lcfrsl=0.08039 normp=20.427 normt=10.017 normlcfrs=27.430
+Ep70 lr=0.00545 Tr l=5.00149 tl=0.04382 lcfrsl=0.07701 normp=20.115 normt=9.912 normlcfrs=27.016
+Ep71 lr=0.00541 Tr l=5.13123 tl=0.04354 lcfrsl=0.07461 normp=19.764 normt=9.885 normlcfrs=26.296
+Ep72 lr=0.00538 Tr l=4.86289 tl=0.04309 lcfrsloss=0.07377 pr99/99 f=99.14 u=99/99/99.4 t=98.96 lcfrs=98.73 Dev pr90/90 f=90.17 (91.08) u=91/91/91.4 t=97.27 lcfrs=86.64
+Ep73 lr=0.00534 Tr l=5.36122 tl=0.04251 lcfrsl=0.07115 normp=18.988 normt=9.757 normlcfrs=25.533
+Ep74 lr=0.00531 Tr l=5.17535 tl=0.04201 lcfrsl=0.06932 normp=18.615 normt=9.710 normlcfrs=25.100
+Ep75 lr=0.00527 Tr l=5.37211 tl=0.04147 lcfrsl=0.06855 normp=19.067 normt=9.651 normlcfrs=24.956
+Ep76 lr=0.00524 Tr l=5.00350 tl=0.04097 lcfrsloss=0.06627 pr99/99 f=99.18 u=99/99/99.5 t=98.97 lcfrs=98.86 Dev pr90/90 f=90.17 (91.06) u=91/91/91.4 t=97.28 lcfrs=86.66
+Ep77 lr=0.00521 Tr l=5.08599 tl=0.04025 lcfrsl=0.06542 normp=18.356 normt=9.524 normlcfrs=24.202
+Ep78 lr=0.00518 Tr l=5.19884 tl=0.04003 lcfrsl=0.06409 normp=18.022 normt=9.494 normlcfrs=24.167
+Ep79 lr=0.00514 Tr l=5.07088 tl=0.03990 lcfrsl=0.06241 normp=17.652 normt=9.471 normlcfrs=23.640
+Ep80 lr=0.00511 Tr l=5.07450 tl=0.03905 lcfrsloss=0.05985 pr99/99 f=99.21 u=99/99/99.5 t=98.98 lcfrs=98.92 Dev pr90/90 f=90.16 (91.03) u=91/91/91.4 t=97.28 lcfrs=86.65
+Ep81 lr=0.00508 Tr l=5.42608 tl=0.03858 lcfrsl=0.05837 normp=17.539 normt=9.347 normlcfrs=22.625
+Ep82 lr=0.00505 Tr l=4.89046 tl=0.03821 lcfrsl=0.05797 normp=17.039 normt=9.261 normlcfrs=22.447
+Ep83 lr=0.00502 Tr l=5.16711 tl=0.03818 lcfrsl=0.05606 normp=16.851 normt=9.311 normlcfrs=22.605
+Ep84 lr=0.00499 Tr l=5.14192 tl=0.03694 lcfrsloss=0.05434 pr99/99 f=99.28 u=99/99/99.6 t=99.00 lcfrs=99.02 Dev pr90/90 f=90.10 (90.98) u=91/91/91.4 t=97.28 lcfrs=86.67
+Ep85 lr=0.00496 Tr l=4.90984 tl=0.03653 lcfrsl=0.05252 normp=15.972 normt=9.035 normlcfrs=21.190
+Ep86 lr=0.00493 Tr l=5.33159 tl=0.03576 lcfrsl=0.05184 normp=15.803 normt=8.946 normlcfrs=20.961
+Ep87 lr=0.00490 Tr l=5.14892 tl=0.03571 lcfrsl=0.04959 normp=15.751 normt=8.974 normlcfrs=20.220
+Ep88 lr=0.00487 Tr l=4.97785 tl=0.03511 lcfrsloss=0.04854 pr99/99 f=99.29 u=99/99/99.6 t=99.03 lcfrs=99.10 Dev pr90/89 f=90.06 (90.92) u=91/91/91.3 t=97.28 lcfrs=86.67
+Ep89 lr=0.00485 Tr l=5.24614 tl=0.03428 lcfrsl=0.04770 normp=15.121 normt=8.768 normlcfrs=19.633
+Ep90 lr=0.00482 Tr l=4.67201 tl=0.03403 lcfrsl=0.04671 normp=15.354 normt=8.815 normlcfrs=19.605
+Ep91 lr=0.00479 Tr l=5.07926 tl=0.03366 lcfrsl=0.04572 normp=15.031 normt=8.731 normlcfrs=19.283
+Ep92 lr=0.00476 Tr l=4.94482 tl=0.03329 lcfrsloss=0.04520 pr99/99 f=99.37 u=99/99/99.7 t=99.08 lcfrs=99.19 Dev pr90/89 f=90.09 (90.95) u=91/91/91.3 t=97.28 lcfrs=86.68
+Ep93 lr=0.00474 Tr l=4.88817 tl=0.03293 lcfrsl=0.04390 normp=14.535 normt=8.663 normlcfrs=18.827
+Ep94 lr=0.00471 Tr l=5.02192 tl=0.03204 lcfrsl=0.04285 normp=14.497 normt=8.453 normlcfrs=18.311
+Ep95 lr=0.00468 Tr l=5.07412 tl=0.03183 lcfrsl=0.04103 normp=14.090 normt=8.529 normlcfrs=17.874
+Ep96 lr=0.00466 Tr l=4.87206 tl=0.03112 lcfrsloss=0.04010 pr99/99 f=99.39 u=99/99/99.7 t=99.11 lcfrs=99.27 Dev pr90/89 f=90.09 (90.96) u=91/91/91.3 t=97.29 lcfrs=86.68
+Ep97 lr=0.00463 Tr l=4.98006 tl=0.03062 lcfrsl=0.03938 normp=13.641 normt=8.325 normlcfrs=17.421
+Ep98 lr=0.00461 Tr l=4.87519 tl=0.03033 lcfrsl=0.03771 normp=13.609 normt=8.295 normlcfrs=16.687
+Ep99 lr=0.00458 Tr l=5.02761 tl=0.02960 lcfrsl=0.03727 normp=13.378 normt=8.223 normlcfrs=16.415
+Ep100 lr=0.00456 Tr l=4.90915 tl=0.02959 lcfrsloss=0.03587 pr99/99 f=99.46 u=99/99/99.7 t=99.10 lcfrs=99.33 Dev pr90/89 f=90.08 (90.96) u=91/91/91.3 t=97.29 lcfrs=86.68

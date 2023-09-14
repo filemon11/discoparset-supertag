@@ -1,0 +1,29 @@
+mode eval
+model ../pretrained_models/LCFRS_gate
+corpus ../multilingual_disco_data/data/dptb/dev.tokens
+output ../pretrained_models/LCFRS_gate/dev_pred.discbracket
+gold ../multilingual_disco_data/data/dptb/dev.discbracket
+gpu 0
+v 1
+t 1
+ccg ../CCGrebank/data
+depptb ../DepPTB/treebank.conllu
+lcfrs ../LCFRS
+LTAGspinal ../LTAGspinal
+pipeline 0
+sM standard
+ctbk ../multilingual_disco_data/data/dptb/dev.ctbk
+split dev
+Mode=eval
+Using gpu 0
+Model loaded
+parsing time: 47.26 seconds for 1700 sentences (40117 tokens)
+parsing time: 35.97 sentences per second, 848.84 tokens per second
+precision=91.5
+recall=91.38
+fscore=91.44
+disc-precision=78.42
+disc-recall=66.82
+disc-fscore=72.15
+tag-accuracy=97.30
+lcfrs-accuracy=87.00

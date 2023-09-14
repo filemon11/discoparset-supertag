@@ -1,0 +1,57 @@
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/lstmstack.py:600: UserWarning: nn.init.xavier_uniform is now deprecated in favor of nn.init.xavier_uniform_.
+  torch.nn.init.xavier_uniform(self.linear.weight)
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/Asgd.py:83: UserWarning: This overload of add_ is deprecated:
+	add_(Number alpha, Tensor other)
+Consider using one of the following signatures instead:
+	add_(Tensor other, *, Number alpha) (Triggered internally at  ../torch/csrc/utils/python_arg_parser.cpp:1174.)
+  param_state['cache'].add_(-group['lr']*self.n_steps, d_p)
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk
+/run/media/lukas/Data/owncloud/Dokumente/Heinrich-Heine-Universität/Bachelorarbeit/Supertags_in_discontinous_constituent_parsing/clean/discoparset-supertag/src/utils.py:61: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (Triggered internally at  ../aten/src/ATen/native/cuda/Indexing.cu:1240.)
+  w2[wmaski[:len(w2)]] = wunk

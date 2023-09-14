@@ -1,0 +1,188 @@
+mode train
+model ../pretrained_models/none_all_aux_gatedres_LTAG
+train ../multilingual_disco_data/data/dptb/train.ctbk
+dev ../multilingual_disco_data/data/dptb/dev.ctbk
+gpu 0
+t 1
+S None
+v 1
+i 100
+l 0.01
+m 0.0
+d 1e-07
+E 4
+A False
+I 0.1
+G 100.0
+B 1
+O asgd
+s 10
+K 0.0
+Q 0.0
+D 0.2
+X 0.5
+H 200
+C 100
+c 100
+w 32
+W 400
+a tanh
+Ra 0
+Rg 0
+Rga 1
+vi 0.0
+vh 0.0
+it 1
+L 0
+ph 2
+th 0
+pb 0
+tb 0
+T [['tag'],['LTAGspinal'],['parsing']]
+ccg ../CCGrebank/data
+depptb ../DepPTB/treebank.conllu
+lcfrs ../LCFRS
+LTAGspinal ../LTAGspinal
+sup 0
+Y 0.0
+sM standard
+dyno 0.15
+number of LTAGspinal labels: 1202
+Num data points: 1860224
+Mean size of mem: 3.911322507396959
+Max size of mem: 29
+Std: 3.2225106768432816
+Distribution:
+Size N %
+0	211377	11.36	11.362986393036538
+1	297797	16.01	27.37164986582261
+2	243629	13.10	40.468405955411825
+3	228083	12.26	52.72945623752839
+4	205988	11.07	63.80274633592514
+5	173122	9.31	73.10925996009084
+6	139255	7.49	80.59518638615566
+7	107386	5.77	86.36793203399162
+8	79678	4.28	90.65117964288173
+9	57486	3.09	93.74145264226244
+10	40105	2.16	95.89737579990367
+11	27095	1.46	97.35392081813804
+12	17812	0.96	98.31143991261268
+13	11465	0.62	98.92776353815455
+14	7293	0.39	99.31981309777748
+15	4680	0.25	99.57139570288311
+16	2967	0.16	99.73089262368404
+17	1880	0.10	99.83195572146151
+18	1164	0.06	99.8945288309365
+19	733	0.04	99.93393268767633
+20	482	0.03	99.95984354572353
+21	283	0.02	99.97505676735706
+22	166	0.01	99.98398042386295
+23	105	0.01	99.98962490538776
+24	63	0.00	99.99301159430264
+25	50	0.00	99.99569944264779
+26	41	0.00	99.99790347829081
+27	29	0.00	99.999462430331
+28	8	0.00	99.99989248606622
+29	2	0.00	100.00000000000003
+Training sentences: 39832
+Dev set sentences: 1700
+Ep1 lr=0.00988 Tr l=13.55445 tl=0.11286 LTAGspinall=0.59602 normp=44.061 normt=14.377 normLTAGspinal=28.992
+Ep2 lr=0.00977 Tr l=15.73495 tl=0.09680 LTAGspinall=0.26938 normp=39.918 normt=13.059 normLTAGspinal=20.503
+Ep3 lr=0.00966 Tr l=13.15255 tl=0.07983 LTAGspinall=0.21904 normp=37.025 normt=11.219 normLTAGspinal=17.809
+Ep4 lr=0.00955 Tr l=12.44751 tl=0.07258 LTAGspinalloss=0.19524 pr89/90 f=90.12 u=90/91/91.0 t=98.09 LTAGspinal=95.42 Dev pr87/88 f=88.35 (89.20) u=89/90/89.8 t=97.02 LTAGspinal=94.20
+Ep5 lr=0.00944 Tr l=12.25178 tl=0.06776 LTAGspinall=0.17859 normp=34.699 normt=10.251 normLTAGspinal=16.474
+Ep6 lr=0.00933 Tr l=11.10612 tl=0.06395 LTAGspinall=0.16482 normp=33.603 normt=10.020 normLTAGspinal=16.129
+Ep7 lr=0.00923 Tr l=11.08974 tl=0.06133 LTAGspinall=0.15485 normp=33.051 normt=9.900 normLTAGspinal=15.986
+Ep8 lr=0.00913 Tr l=10.25710 tl=0.05833 LTAGspinalloss=0.14543 pr91/92 f=92.03 u=92/92/92.6 t=98.57 LTAGspinal=96.25 Dev pr89/89 f=89.37 (90.23) u=90/90/90.6 t=97.17 LTAGspinal=94.59
+Ep9 lr=0.00903 Tr l=9.30627 tl=0.05614 LTAGspinall=0.13739 normp=32.942 normt=9.766 normLTAGspinal=15.819
+Ep10 lr=0.00894 Tr l=8.95264 tl=0.05391 LTAGspinall=0.12986 normp=32.066 normt=9.658 normLTAGspinal=15.743
+Ep11 lr=0.00884 Tr l=9.41681 tl=0.05218 LTAGspinall=0.12304 normp=32.128 normt=9.632 normLTAGspinal=15.764
+Ep12 lr=0.00875 Tr l=9.21595 tl=0.05030 LTAGspinalloss=0.11719 pr93/93 f=93.40 u=93/93/93.8 t=98.71 LTAGspinal=96.89 Dev pr90/90 f=90.01 (90.87) u=91/91/91.2 t=97.22 LTAGspinal=94.75
+Ep13 lr=0.00866 Tr l=9.33098 tl=0.04872 LTAGspinall=0.11154 normp=32.372 normt=9.583 normLTAGspinal=15.772
+Ep14 lr=0.00857 Tr l=8.34561 tl=0.04715 LTAGspinall=0.10680 normp=31.950 normt=9.589 normLTAGspinal=15.792
+Ep15 lr=0.00848 Tr l=8.98888 tl=0.04561 LTAGspinall=0.10310 normp=32.501 normt=9.495 normLTAGspinal=15.862
+Ep16 lr=0.00840 Tr l=7.55871 tl=0.04473 LTAGspinalloss=0.09792 pr94/94 f=94.72 u=94/94/95.0 t=98.86 LTAGspinal=97.23 Dev pr90/90 f=90.18 (91.02) u=91/91/91.4 t=97.24 LTAGspinal=94.83
+Ep17 lr=0.00832 Tr l=8.61307 tl=0.04347 LTAGspinall=0.09393 normp=32.049 normt=9.438 normLTAGspinal=15.817
+Ep18 lr=0.00823 Tr l=8.08154 tl=0.04191 LTAGspinall=0.09075 normp=31.962 normt=9.357 normLTAGspinal=15.826
+Ep19 lr=0.00815 Tr l=8.03898 tl=0.04070 LTAGspinall=0.08707 normp=31.828 normt=9.318 normLTAGspinal=15.741
+Ep20 lr=0.00808 Tr l=7.94598 tl=0.03954 LTAGspinalloss=0.08411 pr95/95 f=95.69 u=95/95/95.9 t=98.97 LTAGspinal=97.47 Dev pr90/90 f=90.23 (91.11) u=91/91/91.4 t=97.25 LTAGspinal=94.84
+Ep21 lr=0.00800 Tr l=7.31734 tl=0.03933 LTAGspinall=0.08019 normp=31.064 normt=9.227 normLTAGspinal=15.632
+Ep22 lr=0.00792 Tr l=7.48274 tl=0.03799 LTAGspinall=0.07828 normp=31.562 normt=9.130 normLTAGspinal=15.700
+Ep23 lr=0.00785 Tr l=7.52232 tl=0.03691 LTAGspinall=0.07493 normp=31.363 normt=9.109 normLTAGspinal=15.595
+Ep24 lr=0.00778 Tr l=7.86662 tl=0.03592 LTAGspinalloss=0.07208 pr96/96 f=96.34 u=96/96/96.6 t=99.07 LTAGspinal=97.78 Dev pr90/90 f=90.35 (91.22) u=91/91/91.5 t=97.28 LTAGspinal=94.86
+Ep25 lr=0.00771 Tr l=7.24078 tl=0.03559 LTAGspinall=0.06930 normp=31.081 normt=9.102 normLTAGspinal=15.512
+Ep26 lr=0.00764 Tr l=6.83635 tl=0.03500 LTAGspinall=0.06858 normp=31.162 normt=9.074 normLTAGspinal=15.508
+Ep27 lr=0.00757 Tr l=7.43101 tl=0.03381 LTAGspinall=0.06603 normp=31.162 normt=8.902 normLTAGspinal=15.328
+Ep28 lr=0.00750 Tr l=6.76885 tl=0.03331 LTAGspinalloss=0.06453 pr96/96 f=96.87 u=97/97/97.1 t=99.18 LTAGspinal=98.12 Dev pr90/90 f=90.43 (91.27) u=91/91/91.6 t=97.26 LTAGspinal=94.86
+Ep29 lr=0.00743 Tr l=6.43345 tl=0.03286 LTAGspinall=0.06258 normp=30.647 normt=8.855 normLTAGspinal=15.429
+Ep30 lr=0.00737 Tr l=6.96758 tl=0.03221 LTAGspinall=0.06070 normp=30.762 normt=8.857 normLTAGspinal=15.264
+Ep31 lr=0.00730 Tr l=6.98599 tl=0.03153 LTAGspinall=0.05879 normp=30.098 normt=8.777 normLTAGspinal=15.173
+Ep32 lr=0.00724 Tr l=7.18788 tl=0.03043 LTAGspinalloss=0.05618 pr97/97 f=97.20 u=97/97/97.4 t=99.22 LTAGspinal=98.36 Dev pr90/90 f=90.54 (91.38) u=91/91/91.7 t=97.24 LTAGspinal=94.87
+Ep33 lr=0.00718 Tr l=6.71075 tl=0.03006 LTAGspinall=0.05500 normp=29.985 normt=8.568 normLTAGspinal=14.880
+Ep34 lr=0.00712 Tr l=6.70832 tl=0.02973 LTAGspinall=0.05442 normp=30.095 normt=8.603 normLTAGspinal=14.968
+Ep35 lr=0.00706 Tr l=6.72918 tl=0.02851 LTAGspinall=0.05180 normp=29.677 normt=8.468 normLTAGspinal=14.645
+Ep36 lr=0.00700 Tr l=6.64732 tl=0.02788 LTAGspinalloss=0.05084 pr97/97 f=97.43 u=97/97/97.6 t=99.29 LTAGspinal=98.56 Dev pr90/90 f=90.59 (91.41) u=91/91/91.8 t=97.24 LTAGspinal=94.82
+Ep37 lr=0.00694 Tr l=6.50516 tl=0.02791 LTAGspinall=0.04964 normp=29.331 normt=8.463 normLTAGspinal=14.543
+Ep38 lr=0.00688 Tr l=6.70588 tl=0.02711 LTAGspinall=0.04896 normp=29.505 normt=8.365 normLTAGspinal=14.619
+Ep39 lr=0.00683 Tr l=6.31449 tl=0.02682 LTAGspinall=0.04725 normp=29.176 normt=8.378 normLTAGspinal=14.411
+Ep40 lr=0.00677 Tr l=6.67681 tl=0.02621 LTAGspinalloss=0.04637 pr97/97 f=97.62 u=97/97/97.8 t=99.37 LTAGspinal=98.72 Dev pr90/90 f=90.55 (91.37) u=91/91/91.7 t=97.22 LTAGspinal=94.82
+Ep41 lr=0.00672 Tr l=5.74552 tl=0.02584 LTAGspinall=0.04419 normp=28.248 normt=8.166 normLTAGspinal=14.025
+Ep42 lr=0.00667 Tr l=6.42380 tl=0.02488 LTAGspinall=0.04370 normp=28.587 normt=8.084 normLTAGspinal=13.988
+Ep43 lr=0.00661 Tr l=6.22149 tl=0.02487 LTAGspinall=0.04241 normp=28.719 normt=8.075 normLTAGspinal=13.884
+Ep44 lr=0.00656 Tr l=6.41325 tl=0.02416 LTAGspinalloss=0.04111 pr97/97 f=97.73 u=97/97/97.9 t=99.48 LTAGspinal=98.88 Dev pr90/90 f=90.54 (91.36) u=91/91/91.7 t=97.20 LTAGspinal=94.80
+Ep45 lr=0.00651 Tr l=6.38428 tl=0.02358 LTAGspinall=0.03999 normp=27.789 normt=7.838 normLTAGspinal=13.577
+Ep46 lr=0.00646 Tr l=6.45272 tl=0.02358 LTAGspinall=0.03940 normp=27.648 normt=7.871 normLTAGspinal=13.622
+Ep47 lr=0.00641 Tr l=6.01743 tl=0.02315 LTAGspinall=0.03842 normp=28.058 normt=7.815 normLTAGspinal=13.436
+Ep48 lr=0.00636 Tr l=6.34565 tl=0.02205 LTAGspinalloss=0.03734 pr98/97 f=98.06 u=98/98/98.2 t=99.54 LTAGspinal=98.98 Dev pr90/90 f=90.48 (91.32) u=91/91/91.6 t=97.18 LTAGspinal=94.76
+Ep49 lr=0.00631 Tr l=6.24167 tl=0.02174 LTAGspinall=0.03628 normp=27.289 normt=7.541 normLTAGspinal=13.031
+Ep50 lr=0.00627 Tr l=6.35584 tl=0.02136 LTAGspinall=0.03506 normp=26.989 normt=7.545 normLTAGspinal=12.787
+Ep51 lr=0.00622 Tr l=5.64147 tl=0.02115 LTAGspinall=0.03402 normp=26.764 normt=7.531 normLTAGspinal=12.617
+Ep52 lr=0.00618 Tr l=5.77856 tl=0.02030 LTAGspinalloss=0.03361 pr98/98 f=98.14 u=98/98/98.3 t=99.61 LTAGspinal=99.17 Dev pr90/90 f=90.51 (91.37) u=91/91/91.7 t=97.16 LTAGspinal=94.76
+Ep53 lr=0.00613 Tr l=5.68486 tl=0.02039 LTAGspinall=0.03331 normp=26.577 normt=7.365 normLTAGspinal=12.709
+Ep54 lr=0.00609 Tr l=6.23407 tl=0.01991 LTAGspinall=0.03222 normp=26.215 normt=7.336 normLTAGspinal=12.411
+Ep55 lr=0.00604 Tr l=5.78988 tl=0.01945 LTAGspinall=0.03146 normp=25.871 normt=7.263 normLTAGspinal=12.279
+Ep56 lr=0.00600 Tr l=5.97704 tl=0.01911 LTAGspinalloss=0.03049 pr98/98 f=98.33 u=98/98/98.4 t=99.64 LTAGspinal=99.22 Dev pr90/90 f=90.55 (91.42) u=91/91/91.7 t=97.14 LTAGspinal=94.75
+Ep57 lr=0.00596 Tr l=5.55190 tl=0.01820 LTAGspinall=0.02981 normp=25.440 normt=6.945 normLTAGspinal=11.875
+Ep58 lr=0.00591 Tr l=6.11100 tl=0.01773 LTAGspinall=0.02902 normp=25.644 normt=6.877 normLTAGspinal=11.697
+Ep59 lr=0.00587 Tr l=5.99345 tl=0.01769 LTAGspinall=0.02800 normp=25.077 normt=6.850 normLTAGspinal=11.534
+Ep60 lr=0.00583 Tr l=5.67929 tl=0.01712 LTAGspinalloss=0.02789 pr98/98 f=98.53 u=98/98/98.6 t=99.70 LTAGspinal=99.29 Dev pr90/90 f=90.55 (91.42) u=91/91/91.7 t=97.11 LTAGspinal=94.75
+Ep61 lr=0.00579 Tr l=5.64900 tl=0.01669 LTAGspinall=0.02742 normp=24.891 normt=6.664 normLTAGspinal=11.377
+Ep62 lr=0.00575 Tr l=5.72955 tl=0.01688 LTAGspinall=0.02635 normp=24.410 normt=6.712 normLTAGspinal=11.116
+Ep63 lr=0.00571 Tr l=5.73255 tl=0.01658 LTAGspinall=0.02602 normp=24.084 normt=6.646 normLTAGspinal=11.083
+Ep64 lr=0.00567 Tr l=5.65451 tl=0.01614 LTAGspinalloss=0.02495 pr98/98 f=98.63 u=98/98/98.7 t=99.74 LTAGspinal=99.38 Dev pr90/90 f=90.54 (91.40) u=91/91/91.7 t=97.13 LTAGspinal=94.75
+Ep65 lr=0.00564 Tr l=5.57638 tl=0.01543 LTAGspinall=0.02427 normp=23.769 normt=6.346 normLTAGspinal=10.704
+Ep66 lr=0.00560 Tr l=5.72400 tl=0.01527 LTAGspinall=0.02348 normp=23.207 normt=6.243 normLTAGspinal=10.372
+Ep67 lr=0.00556 Tr l=5.63361 tl=0.01487 LTAGspinall=0.02340 normp=23.206 normt=6.230 normLTAGspinal=10.393
+Ep68 lr=0.00553 Tr l=5.65544 tl=0.01439 LTAGspinalloss=0.02222 pr98/98 f=98.82 u=98/98/98.9 t=99.76 LTAGspinal=99.41 Dev pr90/90 f=90.57 (91.45) u=91/91/91.7 t=97.13 LTAGspinal=94.72
+Ep69 lr=0.00549 Tr l=5.46740 tl=0.01461 LTAGspinall=0.02229 normp=22.749 normt=6.158 normLTAGspinal=10.104
+Ep70 lr=0.00545 Tr l=5.43542 tl=0.01409 LTAGspinall=0.02148 normp=22.360 normt=5.973 normLTAGspinal=9.925
+Ep71 lr=0.00542 Tr l=5.54501 tl=0.01355 LTAGspinall=0.02051 normp=21.885 normt=5.791 normLTAGspinal=9.458
+Ep72 lr=0.00538 Tr l=5.41870 tl=0.01319 LTAGspinalloss=0.02017 pr98/98 f=98.84 u=98/98/98.9 t=99.76 LTAGspinal=99.49 Dev pr90/90 f=90.57 (91.45) u=91/91/91.7 t=97.14 LTAGspinal=94.71
+Ep73 lr=0.00535 Tr l=5.42976 tl=0.01323 LTAGspinall=0.02050 normp=21.887 normt=5.695 normLTAGspinal=9.523
+Ep74 lr=0.00532 Tr l=5.49497 tl=0.01297 LTAGspinall=0.01938 normp=21.527 normt=5.689 normLTAGspinal=9.219
+Ep75 lr=0.00528 Tr l=5.08430 tl=0.01258 LTAGspinall=0.01939 normp=21.197 normt=5.577 normLTAGspinal=9.248
+Ep76 lr=0.00525 Tr l=5.09837 tl=0.01202 LTAGspinalloss=0.01902 pr99/98 f=98.98 u=99/99/99.0 t=99.77 LTAGspinal=99.57 Dev pr90/90 f=90.56 (91.44) u=91/91/91.7 t=97.13 LTAGspinal=94.70
+Ep77 lr=0.00522 Tr l=5.44728 tl=0.01207 LTAGspinall=0.01800 normp=20.857 normt=5.414 normLTAGspinal=8.786
+Ep78 lr=0.00518 Tr l=5.59698 tl=0.01180 LTAGspinall=0.01797 normp=20.665 normt=5.327 normLTAGspinal=8.716
+Ep79 lr=0.00515 Tr l=5.32931 tl=0.01151 LTAGspinall=0.01740 normp=20.144 normt=5.278 normLTAGspinal=8.589
+Ep80 lr=0.00512 Tr l=5.39451 tl=0.01106 LTAGspinalloss=0.01696 pr99/99 f=99.04 u=99/99/99.1 t=99.81 LTAGspinal=99.60 Dev pr90/90 f=90.55 (91.41) u=91/91/91.7 t=97.12 LTAGspinal=94.67
+Ep81 lr=0.00509 Tr l=5.19198 tl=0.01156 LTAGspinall=0.01713 normp=20.778 normt=5.313 normLTAGspinal=8.528
+Ep82 lr=0.00506 Tr l=5.12331 tl=0.01091 LTAGspinall=0.01640 normp=19.663 normt=5.096 normLTAGspinal=8.207
+Ep83 lr=0.00503 Tr l=5.21070 tl=0.01044 LTAGspinall=0.01600 normp=19.536 normt=4.977 normLTAGspinal=8.019
+Ep84 lr=0.00500 Tr l=5.10400 tl=0.01030 LTAGspinalloss=0.01559 pr99/99 f=99.24 u=99/99/99.3 t=99.84 LTAGspinal=99.62 Dev pr90/90 f=90.54 (91.40) u=91/91/91.7 t=97.12 LTAGspinal=94.65
+Ep85 lr=0.00497 Tr l=5.48479 tl=0.00998 LTAGspinall=0.01525 normp=19.059 normt=4.774 normLTAGspinal=7.811
+Ep86 lr=0.00494 Tr l=5.27220 tl=0.00975 LTAGspinall=0.01484 normp=18.976 normt=4.748 normLTAGspinal=7.644
+Ep87 lr=0.00491 Tr l=5.40064 tl=0.00991 LTAGspinall=0.01474 normp=19.143 normt=4.785 normLTAGspinal=7.548
+Ep88 lr=0.00488 Tr l=5.17647 tl=0.00963 LTAGspinalloss=0.01409 pr99/99 f=99.31 u=99/99/99.4 t=99.84 LTAGspinal=99.68 Dev pr90/90 f=90.56 (91.43) u=91/91/91.7 t=97.12 LTAGspinal=94.64
+Ep89 lr=0.00485 Tr l=5.21564 tl=0.00933 LTAGspinall=0.01402 normp=18.775 normt=4.559 normLTAGspinal=7.371
+Ep90 lr=0.00483 Tr l=5.01901 tl=0.00908 LTAGspinall=0.01413 normp=17.767 normt=4.466 normLTAGspinal=7.186
+Ep91 lr=0.00480 Tr l=4.95798 tl=0.00886 LTAGspinall=0.01296 normp=18.024 normt=4.384 normLTAGspinal=6.921
+Ep92 lr=0.00477 Tr l=5.42755 tl=0.00875 LTAGspinalloss=0.01286 pr99/99 f=99.38 u=99/99/99.4 t=99.85 LTAGspinal=99.72 Dev pr90/90 f=90.51 (91.39) u=91/91/91.7 t=97.11 LTAGspinal=94.61
+Ep93 lr=0.00474 Tr l=4.59998 tl=0.00908 LTAGspinall=0.01296 normp=17.843 normt=4.489 normLTAGspinal=6.943
+Ep94 lr=0.00472 Tr l=5.48555 tl=0.00811 LTAGspinall=0.01252 normp=17.589 normt=4.141 normLTAGspinal=6.638
+Ep95 lr=0.00469 Tr l=4.82147 tl=0.00830 LTAGspinall=0.01225 normp=17.516 normt=4.206 normLTAGspinal=6.582
+Ep96 lr=0.00467 Tr l=5.30431 tl=0.00812 LTAGspinalloss=0.01193 pr99/99 f=99.38 u=99/99/99.4 t=99.86 LTAGspinal=99.78 Dev pr90/90 f=90.50 (91.39) u=91/91/91.7 t=97.10 LTAGspinal=94.62
+Ep97 lr=0.00464 Tr l=5.17413 tl=0.00782 LTAGspinall=0.01170 normp=16.867 normt=4.029 normLTAGspinal=6.306
+Ep98 lr=0.00461 Tr l=4.68665 tl=0.00755 LTAGspinall=0.01126 normp=16.541 normt=3.915 normLTAGspinal=6.135
+Ep99 lr=0.00459 Tr l=5.16188 tl=0.00715 LTAGspinall=0.01100 normp=16.483 normt=3.751 normLTAGspinal=5.926
+Ep100 lr=0.00456 Tr l=5.14459 tl=0.00754 LTAGspinalloss=0.01097 pr99/99 f=99.51 u=99/99/99.6 t=99.87 LTAGspinal=99.80 Dev pr90/90 f=90.45 (91.35) u=91/91/91.6 t=97.11 LTAGspinal=94.60
