@@ -4,7 +4,7 @@ if [ "$#" -ne 3 ]
 then
     echo "illegal number of parameters"
     echo Usage:
-    echo    "sh launch_experiments (negra|dptb|tiger_spmrl) modelname <gpu-id>"
+    echo    "sh launch_experiments (negra|dptb|tiger_spmrl) modelname <gpu-id | -1>"
     exit 1
 fi
 
@@ -42,10 +42,14 @@ layer_norm=0
 dropout="-K ${drop_char_emb} -Q ${drop_char_out} -D ${drop_parser} -X ${drop_tagger} -vi ${vardrop_i} -vh ${vardrop_h} -L ${layer_norm}"
 
 # architectural
-lstm_stack="[['tag'],['parsing']]"
+lstm_stack="[['tag'],['supertag'],['parsing']]"
 
-residual_addition=1
+residual_addition=0
 residual_gated=0
+residual_gated_output=1
+
+initial_transform=1
+
 activation_fun="tanh"
 
 hid_layers_parser_ff=2
@@ -53,11 +57,11 @@ hid_layers_tagger_ff=0
 bias_final_parser_ff=0
 bias_final_tagger_ff=0
 
-architectural="-T ${lstm_stack} -Ra ${residual_addition} -Rg ${residual_gated} -a ${activation_fun} -ph ${hid_layers_parser_ff} -th ${hid_layers_tagger_ff} -pb ${bias_final_parser_ff} -tb ${bias_final_tagger_ff}"
+architectural="-T ${lstm_stack} -Ra ${residual_addition} -Rg ${residual_gated} -Rga ${residual_gated_output} -it ${initial_transform} -a ${activation_fun} -ph ${hid_layers_parser_ff} -th ${hid_layers_tagger_ff} -pb ${bias_final_parser_ff} -tb ${bias_final_tagger_ff}"
 
 # supertagger pipeline
-d_pipeline=425
-drop_pipeline=0.1
+d_pipeline=0
+drop_pipeline=0
 
 pipeline="-sup ${d_pipeline} -Y ${drop_pipeline}"
 
@@ -66,7 +70,7 @@ d_char_emb=100
 d_char_lstm=100
 d_word_emb=32
 
-d_sentence_lstm=400
+d_sentence_lstm=600
 
 d_hidden_ff=200
 
@@ -92,12 +96,11 @@ hyper="-i ${iterations} -l ${learning_rate} -m ${momentum} -d ${decay} -E ${eval
 
 # other (train and eval)
 cpu_threads=1
-variant="standard"
 
-other="-t ${cpu_threads} -sM ${variant}"
+other="-t ${cpu_threads}"
 
 # other (eval)
-eval_pipeline=1
+eval_pipeline=0
 
 other_eval="-pipeline ${eval_pipeline}"
 
@@ -108,8 +111,7 @@ args="${oracle} ${dropout} ${architectural} ${pipeline} ${dimensions} ${init} ${
 mkdir -p ${2}
 (
 python sfparser.py train ${2} ${dirs} ${args} --gpu ${gpu} > ${2}/log.txt 2> ${2}/err.txt &&
-python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket ${other} --gold ${dgold} -ctbk ${dev} -split "dev" ${other_eval} --gpu 0 > ${2}/eval_dev &&
-python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket ${other} --gold ${tgold} -ctbk ${test} -split "test" ${other_eval} --gpu 0 > ${2}/eval_test  ) &
+python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket ${other} --gold ${dgold} -ctbk ${dev} -split "dev" ${other_eval} --gpu ${gpu} > ${2}/eval_dev &&
+python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket ${other} --gold ${tgold} -ctbk ${test} -split "test" ${other_eval} --gpu ${gpu} > ${2}/eval_test  ) &
 wait
-
 

@@ -4,7 +4,7 @@ if [ "$#" -ne 3 ]
 then
     echo "illegal number of parameters"
     echo Usage:
-    echo    "sh launch_experiments (negra|dptb|tiger_spmrl) modelname <gpu-id>"
+    echo    "sh launch_experiments (negra|dptb|tiger_spmrl) modelname <gpu-id | -1>"
     exit 1
 fi
 
@@ -108,8 +108,8 @@ args="${oracle} ${dropout} ${architectural} ${pipeline} ${dimensions} ${init} ${
 mkdir -p ${2}
 (
 python sfparser.py train ${2} ${dirs} ${args} --gpu ${gpu} > ${2}/log.txt 2> ${2}/err.txt &&
-python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket ${other} --gold ${dgold} -ctbk ${dev} -split "dev" ${other_eval} --gpu 0 > ${2}/eval_dev &&
-python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket ${other} --gold ${tgold} -ctbk ${test} -split "test" ${other_eval} --gpu 0 > ${2}/eval_test  ) &
+python sfparser.py eval ${2} ${dtok} ${2}/dev_pred.discbracket ${other} --gold ${dgold} -ctbk ${dev} -split "dev" ${other_eval} --gpu ${gpu} > ${2}/eval_dev &&
+python sfparser.py eval ${2} ${ttok} ${2}/test_pred.discbracket ${other} --gold ${tgold} -ctbk ${test} -split "test" ${other_eval} --gpu ${gpu} > ${2}/eval_test  ) &
 wait
 
 
