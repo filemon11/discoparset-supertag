@@ -73,3 +73,23 @@ Each model has its own launch_experiments_\<model\>.sh script. Run in terminal:
     sh launch_experiments_<model>.sh "dptb" "../pretrained_models/<model> <device>
 
 Use -1 for CPU and 0 for GPU (assuming you have only one GPU).
+
+## References:
+
+This project extends the discoparset project created by
+
+    @inproceedings{coavoux-cohen-2019-discontinuous,
+    title = "Discontinuous Constituency Parsing with a Stack-Free Transition System and a Dynamic Oracle",
+    author = "Coavoux, Maximin  and
+      Cohen, Shay B.",
+    booktitle = "Proceedings of the 2019 Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)",
+    month = jun,
+    year = "2019",
+    address = "Minneapolis, Minnesota",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/N19-1018",
+    doi = "10.18653/v1/N19-1018",
+    pages = "204--217"
+    }
+
+Their code is available at https://gitlab.com/mcoavoux/discoparset
