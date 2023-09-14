@@ -1,7 +1,4 @@
-# DisConStackFreeTest
-
-
-# Discoparset
+# Discoparset-Supertag
 
 ## Install dependencies
 
@@ -10,8 +7,8 @@ Assuming you have a Python 3.10.9 environment.
 Install disco-dop (https://github.com/andreasvc/disco-dop)
 
 Install depCCG (2.0.3.2): (https://github.com/masashi-y/depccg)
-Note that the model (English default) currently needs to be downloaded manually
-(see https://github.com/masashi-y/depccg/issues/10)
+Note that the models (basic and rebank) currently need to be downloaded manually
+(see https://github.com/masashi-y/depccg/issues/10). The links are in the README.md
 
 After that run:
 
@@ -22,9 +19,10 @@ After that run:
 **DPTB:**
     
     git clone https://github.com/mcoavoux/multilingual_disco_data.git
-    # and follow instructions in multilingual_disco_data/readme
 
-    You need to provide a copy of the DPTB (contact Kilian Evang).
+and follow instructions in multilingual_disco_data/readme
+
+You need to provide a copy of the DPTB (contact Kilian Evang).
 
 **CCGrebank:**
 
@@ -53,9 +51,15 @@ contents into a folder named ``LTAGspinal``in the project directory
 Path can be changed via ``-LTAGspinal`` parameter when 
 launching ``sfparser.py``.
 
+## Download models
+
+Due to github's file size limitations, the models are stored externally. You can download them at https://drive.google.com/drive/folders/1Gqyq9H1TihH5D5Z0WWKHeQeDse-3wSfI?usp=sharing
+
+I recommend using ``gdown`` to download from Google Drive: https://github.com/wkentaro/gdown
+
 ## Reproduce result with pretrained models:
 
-Each model has its own launch_experiments_<model>.sh script. In the script, comment out the line 
+Each model has its own launch_experiments_\<model\>.sh script. In the script, comment out the line 
 starting with ``python sfparser.py train``. Then run in terminal:
 
     sh launch_experiments_<model>.sh "dptb" "../pretrained_models/<model> <device>
@@ -64,7 +68,7 @@ Use -1 for CPU and 0 for GPU (assuming you have only one GPU).
 
 ## Reproduce results by retraining models:
 
-Each model has its own launch_experiments_<model>.sh script. Run in terminal:
+Each model has its own launch_experiments_\<model\>.sh script. Run in terminal:
 
     sh launch_experiments_<model>.sh "dptb" "../pretrained_models/<model> <device>
 
